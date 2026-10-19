@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Simulador del Sistema Solar</title>
+<style>
+  :root{
+    --bg:#04060c; --fg:#c9d6e4; --dim:#6b7c92; --line:#1d2b3d;
+    --accent:#4fd1ff; --panel:rgba(10,16,26,.84);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--fg);
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;
+    -webkit-font-smoothing:antialiased}
+  #sky{display:block;width:100%;height:100%;cursor:grab;touch-action:none}
+  #sky.dragging{cursor:grabbing}
+
+  .panel{position:absolute;background:var(--panel);border:1px solid var(--line);
+    border-radius:9px;padding:10px 12px;backdrop-filter:blur(8px);
+    box-shadow:0 8px 26px rgba(0,0,0,.45)}
+
+  #hud{top:12px;left:12px;line-height:1.6;min-width:250px}
+  #hud .big{font-size:13px;color:var(--accent);letter-spacing:.4px}
+  #hud .muted{color:var(--dim)}
+
+  #info{top:12px;right:12px;width:300px;max-height:calc(100% - 24px);
+    overflow:auto;display:none;line-height:1.5}
+  #info .ttl{font-size:15px;color:#fff;letter-spacing:.5px}
+  #info .sub{color:var(--dim);margin-bottom:8px;font-size:11px;text-transform:uppercase;
+    letter-spacing:1px}
+  #info .row{display:flex;justify-content:space-between;gap:10px;padding:2px 0;
+    border-bottom:1px dashed rgba(255,255,255,.05)}
+  #info .k{color:var(--dim)}
+  #info .v{text-align:right;color:#dbe7f3;white-space:pre-line}
+
+  #controls{bottom:12px;left:12px;display:flex;flex-direction:column;gap:9px;min-width:266px}
+  #controls .grp{display:flex;gap:6px;flex-wrap:wrap}
+  button{background:#122033;color:var(--fg);border:1px solid var(--line);border-radius:6px;
+    padding:5px 9px;font-family:inherit;font-size:11px;cursor:pointer;transition:.15s}
+  button:hover{background:#1a2c46;border-color:#2f4a6b;color:#fff}
+  button.on{background:#123a4d;border-color:var(--accent);color:var(--accent)}
+  label.chk{display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--dim);
+    font-size:11px;user-select:none}
+  input[type=checkbox]{accent-color:var(--accent);cursor:pointer}
+  input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer}
+  .lbl{display:flex;justify-content:space-between;color:var(--dim);font-size:10.5px;
+    text-transform:uppercase;letter-spacing:.7px}
+  .hr{height:1px;background:var(--line);margin:2px 0}
+  @media (max-width:820px){ #info{display:none!important} #controls{min-width:0;right:12px} }
+</style>
+</head>
+<body>
+<canvas id="sky"></canvas>
+
+<div id="hud" class="panel">
+  <div class="big">SISTEMA SOLAR · SIMULADOR</div>
+  <div id="hud-date">—</div>
+  <div class="hr"></div>
+  <div><span class="muted">Escala dist.:</span> <span id="hud-scale">—</span></div>
+  <div><span class="muted">Tamaños:</span> <span id="hud-size">—</span></div>
+  <div class="hr"></div>
+  <div class="muted" style="font-size:11px">Rueda = zoom · Arrastrar = desplazar · Clic = datos</div>
+</div>
+
+<div id="info" class="panel"></div>
+
+<div id="controls" class="panel">
+  <div class="grp">
+    <button id="btn-fit">Sistema completo</button>
+    <button id="btn-inner">Interiores</button>
+    <button id="btn-earth">Tierra–Luna</button>
+  </div>
+  <div class="grp">
+    <button id="btn-play">⏸ Pausa</button>
+    <button id="btn-trails" class="on">Rastros</button>
+    <button id="btn-orbits" class="on">Órbitas</button>
+    <button id="btn-true">Escala real</button>
+  </div>
+  <div>
+    <div class="lbl"><span>Velocidad del tiempo</span><span id="lbl-speed">20 d/s</span></div>
+    <input id="rng-speed" type="range" min="0" max="400" step="1" value="20">
+  </div>
+  <div>
+    <div class="lbl"><span>Inclinación de vista</span><span id="lbl-tilt">0°</span></div>
+    <input id="rng-tilt" type="range" min="0" max="80" step="1" value="0">
+  </div>
+  <div class="grp">
+    <label class="chk"><input type="checkbox" id="chk-follow"> Seguir selección</label>
+    <label class="chk"><input type="checkbox" id="chk-moons" checked> Órbitas de lunas</label>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   SIMULADOR DEL SISTEMA SOLAR
+   ---------------------------------------------------------------------
+   Motor orbital: elementos keplerianos J2000 (a, e, i, Ω, ϖ, L, P).
+   Cada cuerpo se integra automáticamente en órbitas, rastros y panel.
+
+   >>> PARA AÑADIR UN CUERPO NUEVO (asteroide, cometa, planeta enano...) <<<
+   Añade un objeto a CATALOG con:
+     { id, name, kind, parent, radius(km), mass(kg), color,
+       el:{a[UA], e, i[°], om[°], wbar[°], L[°]}, P[días], gm[m³/s²] }
+   Si parent es null => cuerpo raíz (el Sol).
+   Con e=0, i=0, om=0, wbar=0 el motor dibuja una órbita circular.
+   ===================================================================== */
+
+/* ------------------------- 1. CONSTANTES ---------------------------- */
+const DEG     = Math.PI / 180;
+const AU_KM   = 149597870.7;        // km por UA
+const AU_M    = 1.495978707e11;     // m por UA
+const GM_SUN  = 1.32712440018e20;   // m³/s²
+const M_EARTH = 5.97237e24;         // kg
+const R_EARTH = 6371.0;             // km
+const EPOCH   = Date.UTC(2000, 0, 1, 12, 0, 0); // J2000
+
+/* ------------------------ 2. CATÁLOGO ------------------------------- */
+const CATALOG = [
+  /* ---- ESTRELLA ---- */
+  { id:'sun', name:'Sol', kind:'Estrella', parent:null,
+    radius:696340, mass:1.9885e30, gm:GM_SUN, color:'#ffd257' },
+
+  /* ---- PLANETAS ---- */
+  { id:'mercury', name:'Mercurio', kind:'Planeta', parent:'sun',
+    radius:2439.7, mass:3.3011e23, gm:2.2032e13, color:'#b3a49a',
+    el:{a:0.38709843, e:0.20563661, i:7.005594, om:48.33962, wbar:77.45772, L:252.25084},
+    P:87.9691 },
+
+  { id:'venus', name:'Venus', kind:'Planeta', parent:'sun',
+    radius:6051.8, mass:4.8675e24, gm:3.24859e14, color:'#e8cda0',
+    el:{a:0.72332102, e:0.00676399, i:3.397775, om:76.68069, wbar:131.60246, L:181.97973},
+    P:224.701 },
+
+  { id:'earth', name:'Tierra', kind:'Planeta', parent:'sun',
+    radius:6371.0, mass:5.97237e24, gm:3.986004418e14, color:'#5a9fd4',
+    el:{a:1.00000018, e:0.01673163, i:0.000543, om:0.0, wbar:102.94719, L:100.46435},
+    P:365.256363 },
+
+  { id:'mars', name:'Marte', kind:'Planeta', parent:'sun',
+    radius:3389.5, mass:6.4171e23, gm:4.282837e13, color:'#c1440e',
+    el:{a:1.52371243, e:0.09336511, i:1.851818, om:49.57854, wbar:336.04084, L:355.45332},
+    P:686.980 },
+
+  { id:'jupiter', name:'Júpiter', kind:'Planeta', parent:'sun',
+    radius:69911, mass:1.8982e27, gm:1.26686534e17, color:'#d8ca9d',
+    el:{a:5.20288700, e:0.04838624, i:1.304400, om:100.473909, wbar:14.728479, L:34.40438},
+    P:4332.589 },
+
+  { id:'saturn', name:'Saturno', kind:'Planeta', parent:'sun',
+    radius:58232, mass:5.6834e26, gm:3.7931187e16, color:'#e3d9a8',
+    el:{a:9.53667594, e:0.05386179, i:2.485992, om:113.662424, wbar:92.598878, L:49.94432},
+    P:10759.22 },
+
+  { id:'uranus', name:'Urano', kind:'Planeta', parent:'sun',
+    radius:25362, mass:8.6810e25, gm:5.793939e15, color:'#9fe3e3',
+    el:{a:19.18916464, e:0.04725744, i:0.772637, om:74.016925, wbar:170.954276, L:313.23218},
+    P:30685.4 },
+
+  { id:'neptune', name:'Neptuno', kind:'Planeta', parent:'sun',
+    radius:24622, mass:1.02413e26, gm:6.836529e15, color:'#4166f5',
+    el:{a:30.06992276, e:0.00859048, i:1.770043, om:131.784057, wbar:44.971352, L:304.88003},
+    P:60189.0 },
+
+  /* ---- SATÉLITES ---- */
+  { id:'moon', name:'Luna', kind:'Satélite', parent:'earth',
+    radius:1737.4, mass:7.342e22, gm:4.9048695e12, color:'#cfcfcf',
+    el:{a:384400/AU_KM, e:0.0549, i:5.145, om:125.08, wbar:83.35, L:218.32},
+    P:27.321661 },
+
+  { id:'phobos', name:'Fobos', kind:'Satélite', parent:'mars',
+    radius:11.27, mass:1.0659e16, gm:7.087e5, color:'#9a8b7d',
+    el:{a:9376/AU_KM, e:0, i:1.08, om:0, wbar:0, L:40}, P:0.318910 },
+
+  { id:'deimos', name:'Deimos', kind:'Satélite', parent:'mars',
+    radius:6.2, mass:1.4762e15, gm:9.615e4, color:'#8b7f74',
+    el:{a:23463/AU_KM, e:0, i:1.79, om:0, wbar:0, L:210}, P:1.26244 },
+
+  { id:'io', name:'Ío', kind:'Satélite', parent:'jupiter',
+    radius:1821.6, mass:8.932e22, gm:5.959916e12, color:'#e8d36a',
+    el:{a:421700/AU_KM, e:0.0041, i:0.05, om:0, wbar:0, L:10}, P:1.769138 },
+
+  { id:'europa', name:'Europa', kind:'Satélite', parent:'jupiter',
+    radius:1560.8, mass:4.800e22, gm:3.202739e12, color:'#cbb8a0',
+    el:{a:671034/AU_KM, e:0.0094, i:0.47, om:0, wbar:0, L:130}, P:3.551181 },
+
+  { id:'ganymede', name:'Ganímedes', kind:'Satélite', parent:'jupiter',
+    radius:2634.1, mass:1.4819e23, gm:9.887834e12, color:'#a89b8c',
+    el:{a:1070412/AU_KM, e:0.0013, i:0.20, om:0, wbar:0, L:250}, P:7.154553 },
+
+  { id:'callisto', name:'Calisto', kind:'Satélite', parent:'jupiter',
+    radius:2410.3, mass:1.0759e23, gm:7.179289e12, color:'#7d7368',
+    el:{a:1882709/AU_KM, e:0.0074, i:0.19, om:0, wbar:0, L:320}, P:16.689018 },
+
+  { id:'enceladus', name:'Encélado', kind:'Satélite', parent:'saturn',
+    radius:252.1, mass:1.080e20, gm:7.211e9, color:'#e6f0f5',
+    el:{a:237948/AU_KM, e:0.0047, i:0.02, om:0, wbar:0, L:70}, P:1.370218 },
+
+  { id:'rhea', name:'Rea', kind:'Satélite', parent:'saturn',
+    radius:763.8, mass:2.306e21, gm:1.539e11, color:'#cdc6bd',
+    el:{a:527108/AU_KM, e:0.0013, i:0.35, om:0, wbar:0, L:180}, P:4.518212 },
+
+  { id:'titan', name:'Titán', kind:'Satélite', parent:'saturn',
+    radius:2574.7, mass:1.3452e23, gm:8.978138e12, color:'#e0b46a',
+    el:{a:1221870/AU_KM, e:0.0288, i:0.35, om:0, wbar:0, L:290}, P:15.945421 },
+
+  { id:'iapetus', name:'Jápeto', kind:'Satélite', parent:'saturn',
+    radius:734.5, mass:1.805e21, gm:1.205e11, color:'#9d938a',
+    el:{a:3560820/AU_KM, e:0.0286, i:15.47, om:0, wbar:0, L:20}, P:79.3215 },
+
+  { id:'ariel', name:'Ariel', kind:'Satélite', parent:'uranus',
+    radius:578.9, mass:1.251e21, gm:8.35e10, color:'#c9d6dd',
+    el:{a:190900/AU_KM, e:0.0012, i:0.26, om:0, wbar:0, L:100}, P:2.520379 },
+
+  { id:'umbriel', name:'Umbriel', kind:'Satélite', parent:'uranus',
+    radius:584.7, mass:1.275e21, gm:8.51e10, color:'#8d9aa3',
+    el:{a:266000/AU_KM, e:0.0039, i:0.13, om:0, wbar:0, L:220}, P:4.144177 },
+
+  { id:'titania', name:'Titania', kind:'Satélite', parent:'uranus',
+    radius:788.4, mass:3.400e21, gm:2.269e11, color:'#b9c4cb',
+    el:{a:436300/AU_KM, e:0.0011, i:0.34, om:0, wbar:0, L:340}, P:8.705872 },
+
+  { id:'oberon', name:'Oberón', kind:'Satélite', parent:'uranus',
+    radius:761.4, mass:3.076e21, gm:2.053e11, color:'#a3aeb5',
+    el:{a:583500/AU_KM, e:0.0014, i:0.06, om:0, wbar:0, L:60}, P:13.463239 },
+
+  { id:'triton', name:'Tritón', kind:'Satélite', parent:'neptune',
+    radius:1353.4, mass:2.139e22, gm:1.427e12, color:'#c8d8e0',
+    el:{a:354759/AU_KM, e:0.000016, i:156.885, om:0, wbar:0, L:150}, P:5.876854 },
+
+  /* =====================================================================
+     AQUÍ SE IRÁN AGREGANDO EN EL FUTURO:
+       · Cinturón de asteroides (grupo de cuerpos con a ≈ 2.2–3.2 UA)
+       · Cinturón de Kuiper, planetas enanos (Ceres, Plutón, Eris...)
+       · Cometas con e alta e i grande
+     El motor ya soporta cualquier número de cuerpos y anidamiento.
+     ===================================================================== */
+];
+
+/* ---------------------- 3. UTILIDADES ORBITALES ---------------------- */
+function solveKepler(M, e){
+  M = ((M % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
+  let E = e < 0.8 ? M : Math.PI;
+  for (let k = 0; k < 12; k++){
+    const d = (E - e*Math.sin(E) - M) / (1 - e*Math.cos(E));
+    E -= d;
+    if (Math.abs(d) < 1e-12) break;
+  }
+  return E;
+}
+
+/* Posición relativa al padre, en UA, para el tiempo t (días desde J2000) */
+function relPos(el, P, t){
+  const n = 2*Math.PI / P;
+  const M = el.L*DEG + n*t - el.wbar*DEG;
+  const E = solveKepler(M, el.e);
+  const bq = el.a * Math.sqrt(1 - el.e*el.e);
+  const xv = el.a*(Math.cos(E) - el.e);
+  const yv = bq*Math.sin(E);
+  const w  = (el.wbar - el.om)*DEG;
+  const cw = Math.cos(w), sw = Math.sin(w);
+  const xp = xv*cw - yv*sw;
+  const yp = xv*sw + yv*cw;
+  const O  = el.om*DEG,  cO = Math.cos(O),  sO = Math.sin(O);
+  const inc= el.i*DEG,   ci = Math.cos(inc), si = Math.sin(inc);
+  return {
+    x: xp*cO - yp*ci*sO,
+    y: xp*sO + yp*ci*cO,
+    z: yp*si
+  };
+}
+
+/* Puntos de la órbita completa, relativos al padre (cacheados) */
+function orbitPoints(el, N){
+  const pts = [];
+  const w  = (el.wbar - el.om)*DEG;
+  const cw = Math.cos(w), sw = Math.sin(w);
+  const O  = el.om*DEG, cO = Math.cos(O), sO = Math.sin(O);
+  const inc= el.i*DEG,  ci = Math.cos(inc), si = Math.sin(inc);
+  const bq = el.a * Math.sqrt(1 - el.e*el.e);
+  for (let k = 0; k <= N; k++){
+    const E = solveKepler(2*Math.PI*k/N, el.e);
+    const xv = el.a*(Math.cos(E) - el.e);
+    const yv = bq*Math.sin(E);
+    const xp = xv*cw - yv*sw;
+    const yp = xv*sw + yv*cw;
+    pts.push({
+      x: xp*cO - yp*ci*sO,
+      y: xp*sO + yp*ci*cO,
+      z: yp*si
+    });
+  }
+  return pts;
+}
+
+const dist = (a,b) => Math.hypot(a.x-b.x, a.y-b.y, a.z-b.z);
+
+/* ------------------------ 4. ESTADO GLOBAL --------------------------- */
+const canvas = document.getElementById('sky');
+const ctx    = canvas.getContext('2d');
+
+let W = 0, H = 0;
+let last = 0;
+
+let simDays   = 0;         // días desde J2000
+let timeScale = 20;        // días por segundo real
+let running   = true;
+
+const BASE_PX_AU = 22;     // px por UA cuando zoom = 1
+const ZOOM_MIN = 0.10, ZOOM_MAX = 60000;
+
+const cam = { x:0, y:0, zoom:1, tilt:0 };
+let pxPerAU = BASE_PX_AU;
+let cosT = 1, sinT = 0;
+
+let selected  = null;
+let followId  = null;
+
+let showPlanetOrbits = true;
+let showMoonOrbits   = true;
+let showTrails       = true;
+let trueScale        = false;
+
+const MIN_R      = 2.6;    // radio mínimo en px (se indica la exageración)
+const MAX_TRAIL  = 320;
+
+/* Construcción del catálogo en objetos vivos */
+const bodies = [];
+const byId   = {};
+for (const c of CATALOG){
+  const b = Object.assign({}, c);
+  b.parentBody = c.parent ? byId[c.parent] : null;
+  b.pos   = { x:0, y:0, z:0 };
+  b.trail = [];
+  b.orbitPts = b.el ? orbitPoints(b.el, b.el.e > 0.02 ? 256 : 96) : null;
+  byId[b.id] = b;
+  bodies.push(b);
+}
+
+/* ---------------------- 5. CÁMARA Y PROYECCIÓN ----------------------- */
+function updateTrig(){
+  cosT = Math.cos(cam.tilt);
+  sinT = Math.sin(cam.tilt);
+}
+
+function project(p){
+  const dx = p.x - cam.x;
+  const dy = p.y - cam.y;
+  const dz = p.z;
+  return {
+    sx: W/2 + dx * pxPerAU,
+    sy: H/2 + (dy*cosT - dz*sinT) * pxPerAU
+  };
+}
+
+function screenToWorld(sx, sy){
+  const c = Math.max(cosT, 0.06);
+  return {
+    x: cam.x + (sx - W/2) / pxPerAU,
+    y: cam.y + (sy - H/2) / (pxPerAU * c)
+  };
+}
+
+function setZoom(z){
+  cam.zoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z));
+  pxPerAU = BASE_PX_AU * cam.zoom;
+}
+
+function zoomAt(sx, sy, factor){
+  const before = screenToWorld(sx, sy);
+  setZoom(cam.zoom * factor);
+  const c = Math.max(cosT, 0.06);
+  cam.x = before.x - (sx - W/2) / pxPerAU;
+  cam.y = before.y - (sy - H/2) / (pxPerAU * c);
+}
+
+function computePositions(t){
+  for (const b of bodies){
+    if (!b.parentBody){
+      b.pos = { x:0, y:0, z:0 };
+      continue;
+    }
+    const p = b.parentBody.pos;
+    const r = relPos(b.el, b.P, t);
+    b.pos = { x:p.x + r.x, y:p.y + r.y, z:p.z + r.z };
+  }
+}
+
+/* -------------------------- 6. RENDERIZADO --------------------------- */
+let starField = [];
+
+function initStars(){
+  starField = [];
+  const n = Math.min(700, Math.round(W*H/2600));
+  for (let i = 0; i < n; i++){
+    starField.push({
+      x: Math.random()*W,
+      y: Math.random()*H,
+      r: Math.random() < 0.9 ? 1 : 1.6,
+      a: 0.15 + Math.random()*0.55
+    });
+  }
+}
+
+function hexA(hex, a){
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+function drawOrbits(){
+  ctx.lineWidth = 1;
+  for (const b of bodies){
+    if (!b.orbitPts) continue;
+    const isMoon = b.kind === 'Satélite';
+    if (isMoon ? !showMoonOrbits : !showPlanetOrbits) continue;
+
+    const base = b.parentBody ? b.parentBody.pos : { x:0, y:0, z:0 };
+    ctx.beginPath();
+    let started = false;
+    for (let i = 0; i < b.orbitPts.length; i++){
+      const q = b.orbitPts[i];
+      const p = project({ x: base.x + q.x, y: base.y + q.y, z: base.z + q.z });
+      if (!started){ ctx.moveTo(p.sx, p.sy); started = true; }
+      else ctx.lineTo(p.sx, p.sy);
+    }
+    const alpha = isMoon ? 0.16 : 0.22;
+    ctx.strokeStyle = hexA(b.color, alpha);
+    ctx.stroke();
+
+    if (b === selected){
+      ctx.strokeStyle = hexA('#4fd1ff', 0.55);
+      ctx.lineWidth = 1.4;
+      ctx.stroke();
+      ctx.lineWidth = 1;
+    }
+  }
+}
+
+function drawTrails(){
+  if (!showTrails) return;
+  ctx.lineWidth = 1.15;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  for (const b of bodies){
+    if (b.trail.length < 2) continue;
+    const isMoon = b.kind === 'Satélite';
+    if (isMoon ? !showMoonOrbits : !showPlanetOrbits) continue;
+
+    ctx.beginPath();
+    for (let i = 0; i < b.trail.length; i++){
+      const p = project(b.trail[i]);
+      if (i === 0) ctx.moveTo(p.sx, p.sy);
+      else ctx.lineTo(p.sx, p.sy);
+    }
+    ctx.strokeStyle = hexA(b.color, b === selected ? 0.85 : 0.42);
+    ctx.stroke();
+  }
+}
+
+function drawBodies(){
+  /* Orden por profundidad aproximada */
+  const order = bodies.slice().sort((a, b) => {
+    const da = (a.pos.y - cam.y)*sinT + a.pos.z*cosT;
+    const db = (b.pos.y - cam.y)*sinT + b.pos.z*cosT;
+    return da - db;
+  });
+
+  for (const b of order){
+    const p = project(b.pos);
+    if (p.sx < -400 || p.sx > W + 400 || p.sy < -400 || p.sy > H + 400) continue;
+
+    const truePx = b.radius / AU_KM * pxPerAU;
+    const r = trueScale ? Math.max(truePx, 0.45) : Math.max(truePx, MIN_R);
+
+    /* Halo del Sol */
+    if (b.id === 'sun'){
+      const gr = Math.max(r * 3.2, 14);
+      const g = ctx.createRadialGradient(p.sx, p.sy, 0, p.sx, p.sy, gr);
+      g.addColorStop(0,   'rgba(255,225,140,.75)');
+      g.addColorStop(0.35,'rgba(255,190,70,.28)');
+      g.addColorStop(1,   'rgba(255,150,40,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(p.sx, p.sy, gr, 0, 7); ctx.fill();
+    }
+
+    /* Disco */
+    ctx.beginPath();
+    ctx.arc(p.sx, p.sy, r, 0, 7);
+    ctx.fillStyle = b.color;
+    ctx.fill();
+
+    if (r > 2.2){
+      ctx.strokeStyle = 'rgba(255,255,255,.22)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    /* Selección */
+    if (b === selected){
+      ctx.beginPath();
+      ctx.arc(p.sx, p.sy, Math.max(r + 5, 9), 0, 7);
+      ctx.strokeStyle = '#4fd1ff';
+      ctx.lineWidth = 1.3;
+      ctx.stroke();
+    }
+
+    /* Etiqueta */
+    if (r >= 3.2 || b === selected || b.kind === 'Planeta'){
+      const show = b.kind !== 'Satélite' || pxPerAU > 2200;
+      if (show){
+        ctx.font = '10.5px ui-monospace, monospace';
+        ctx.fillStyle = b === selected ? '#4fd1ff' : 'rgba(200,215,232,.72)';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(b.name, p.sx + Math.max(r, 3) + 5, p.sy);
+      }
+    }
+  }
+}
+
+function niceNumber(x){
+  const e = Math.pow(10, Math.floor(Math.log10(x)));
+  const f = x / e;
+  const n = f < 1.5 ? 1 : f < 3.5 ? 2 : f < 7.5 ? 5 : 10;
+  return n * e;
+}
+
+function fmtKm(km){
+  if (km >= 1e6) return (km/1e6).toLocaleString('es-ES',{maximumFractionDigits:2}) + ' M km';
+  if (km >= 1e3) return (km/1e3).toLocaleString('es-ES',{maximumFractionDigits:2}) + ' mil km';
+  return km.toLocaleString('es-ES',{maximumFractionDigits:0}) + ' km';
+}
+
+function drawScaleBar(){
+  const kmPerPx = AU_KM / pxPerAU;
+  const nice = niceNumber(150 * kmPerPx);
+  const barPx = nice / kmPerPx;
+  if (!isFinite(barPx) || barPx < 20 || barPx > W*0.6) return;
+
+  const x1 = W - 26;
+  const x0 = x1 - barPx;
+  const y  = H - 28;
+
+  ctx.strokeStyle = 'rgba(160,190,220,.65)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(x0, y - 5); ctx.lineTo(x0, y);
+  ctx.lineTo(x1, y);     ctx.lineTo(x1, y - 5);
+  ctx.stroke();
+
+  ctx.font = '10.5px ui-monospace, monospace';
+  ctx.fillStyle = 'rgba(180,205,230,.85)';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  ctx.fillText(fmtKm(nice), (x0 + x1)/2, y - 8);
+}
+
+function render(){
+  ctx.fillStyle = '#04060c';
+  ctx.fillRect(0, 0, W, H);
+
+  /* Estrellas de fondo */
+  for (const s of starField){
+    ctx.globalAlpha = s.a;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(s.x, s.y, s.r, s.r);
+  }
+  ctx.globalAlpha = 1;
+
+  computePositions(simDays);
+
+  if (followId && byId[followId]){
+    cam.x = byId[followId].pos.x;
+    cam.y = byId[followId].pos.y;
+  }
+
+  drawOrbits();
+  drawTrails();
+  drawBodies();
+  drawScaleBar();
+
+  /* HUD */
+  const d = new Date(EPOCH + simDays * 86400000);
+  document.getElementById('hud-date').textContent =
+    d.toISOString().slice(0,16).replace('T',' ') + ' UTC';
+
+  document.getElementById('hud-scale').textContent =
+    '1 px = ' + fmtKm(AU_KM / pxPerAU);
+
+  document.getElementById('hud-size').textContent =
+    trueScale ? 'escala real exacta' : `mínimo ${MIN_R} px (exageración auto)`;
+}
+
+/* --------------------------- 7. BUCLE ------------------------------- */
+function loop(now){
+  const dt = Math.min((now - last) / 1000, 0.1);
+  last = now;
+
+  const prev = simDays;
+  if (running) simDays += dt * timeScale;
+
+  /* Rastros: se registra un punto por fotograma si hubo avance */
+  if (running && simDays !== prev){
+    for (const b of bodies){
+      if (!b.el) continue;
+      b.trail.push({ x: b.pos.x, y: b.pos.y, z: b.pos.z });
+      if (b.trail.length > MAX_TRAIL) b.trail.shift();
+    }
+  }
+
+  render();
+  if (now % 120 < 17) updateInfo();  // refresco suave del panel
+  requestAnimationFrame(loop);
+}
+
+/* ------------------------ 8. PANEL DE DATOS ------------------------- */
+const SUP = {'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻','+':''};
+const sup = n => String(n).split('').map(c => SUP[c] ?? c).join('');
+
+function sci(x, d = 3){
+  if (!isFinite(x) || x === 0) return '0';
+  const e = Math.floor(Math.log10(Math.abs(x)));
+  const m = x / Math.pow(10, e);
+  return `${m.toFixed(d)} × 10${sup(e)}`;
+}
+
+function nf(x, d = 2){
+  return x.toLocaleString('es-ES', { maximumFractionDigits: d, minimumFractionDigits: 0 });
+}
+
+function row(k, v){
+  return `<div class="row"><span class="k">${k}</span><span class="v">${v}</span></div>`;
+}
+
+const infoEl = document.getElementById('info');
+
+function updateInfo(){
+  if (!selected){ infoEl.style.display = 'none'; return; }
+  infoEl.style.display = 'block';
+
+  const b = selected;
+  const par = b.parentBody;
+  let html = `<div class="ttl">${b.name}</div><div class="sub">${b.kind}</div>`;
+
+  html += row('Masa', `${sci(b.mass)} kg\n${nf(b.mass / M_EARTH, 3)} M⊕`);
+  html += row('Radio', `${nf(b.radius, 1)} km\n${nf(b.radius / R_EARTH, 3)} R⊕`);
+
+  if (b.el && par){
+    const rAU = dist(b.pos, par.pos);
+    const rM  = rAU * AU_M;
+    const aM  = b.el.a * AU_M;
+
+    /* Vis-viva: v = sqrt(GM (2/r - 1/a)) */
+    const v = Math.sqrt(par.gm * (2/rM - 1/aM));
+    const acc = par.gm / (rM*rM);
+
+    html += row('Semieje mayor', `${nf(b.el.a, 6)} UA\n${fmtKm(b.el.a * AU_KM)}`);
+    html += row('Excentricidad', nf(b.el.e, 5));
+    html += row('Inclinación', `${nf(b.el.i, 3)}°`);
+    html += row('Periodo orbital',
+      `${nf(b.P, 3)} d\n${b.P > 700 ? nf(b.P/365.25, 2) + ' años' : nf(b.P/365.25, 4) + ' años'}`);
+    html += row(`Distancia a ${par.name}`, `${nf(rAU, 7)} UA\n${fmtKm(rAU * AU_KM)}`);
+    html += row('Velocidad orbital', `${nf(v/1000, 3)} km/s`);
+    html += row('Aceleración grav.', `${sci(acc, 3)} m/s²`);
+  }
+
+  /* Escala de dibujo */
+  const truePx = b.radius / AU_KM * pxPerAU;
+  const drawPx = trueScale ? Math.max(truePx, 0.45) : Math.max(truePx, MIN_R);
+  const exag = truePx > 0 ? drawPx / truePx : 1;
+  html += row('Escala de dibujo',
+    `${nf(drawPx, 2)} px\nreal a esta escala: ${nf(truePx, 4)} px` +
+    (exag > 1.02 ? `\nexageración ×${nf(exag, 1)}` : '\nsin exageración'));
+
+  infoEl.innerHTML = html;
+}
+
+/* ----------------------- 9. INTERACCIÓN ----------------------------- */
+let dragging = false, moved = false, lastX = 0, lastY = 0;
+
+canvas.addEventListener('mousedown', e => {
+  dragging = true; moved = false;
+  lastX = e.clientX; lastY = e.clientY;
+  canvas.classList.add('dragging');
+});
+
+canvas.addEventListener('mousemove', e => {
+  if (!dragging) return;
+  const dx = e.clientX - lastX;
+  const dy = e.clientY - lastY;
+  lastX = e.clientX; lastY = e.clientY;
+  if (Math.abs(dx) + Math.abs(dy) > 2) moved = true;
+
+  followId = null;
+  document.getElementById('chk-follow').checked = false;
+
+  const c = Math.max(cosT, 0.06);
+  cam.x -= dx / pxPerAU;
+  cam.y -= dy / (pxPerAU * c);
+});
+
+window.addEventListener('mouseup', e => {
+  if (dragging && !moved) pick(e.clientX, e.clientY);
+  dragging = false;
+  canvas.classList.remove('dragging');
+});
+
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  const factor = e.deltaY > 0 ? 0.86 : 1 / 0.86;
+  zoomAt(e.clientX, e.clientY, factor);
+}, { passive: false });
+
+/* Picking */
+function pick(sx, sy){
+  let best = null, bestScore = Infinity;
+  for (const b of bodies){
+    const p = project(b.pos);
+    const truePx = b.radius / AU_KM * pxPerAU;
+    const r = trueScale ? Math.max(truePx, 0.45) : Math.max(truePx, MIN_R);
+    const d = Math.hypot(p.sx - sx, p.sy - sy);
+    const tol = Math.max(r + 8, 12);
+    if (d < tol){
+      const score = d / tol;
+      if (score < bestScore){ bestScore = score; best = b; }
+    }
+  }
+  selected = best;
+  updateInfo();
+}
+
+/* Teclado */
+window.addEventListener('keydown', e => {
+  if (e.key === 'Escape'){ selected = null; updateInfo(); }
+  if (e.key === ' '){ e.preventDefault(); togglePlay(); }
+  if (e.key === '+' || e.key === '=') zoomAt(W/2, H/2, 1.35);
+  if (e.key === '-') zoomAt(W/2, H/2, 1/1.35);
+});
+
+/* -------------------------- 10. CONTROLES --------------------------- */
+function togglePlay(){
+  running = !running;
+  const btn = document.getElementById('btn-play');
+  btn.textContent = running ? '⏸ Pausa' : '▶ Reanudar';
+  btn.classList.toggle('on', !running);
+}
+
+document.getElementById('btn-play').onclick = togglePlay;
+
+document.getElementById('btn-trails').onclick = e => {
+  showTrails = !showTrails;
+  e.currentTarget.classList.toggle('on', showTrails);
+};
+
+document.getElementById('btn-orbits').onclick = e => {
+  showPlanetOrbits = showMoonOrbits = !showPlanetOrbits;
+  e.currentTarget.classList.toggle('on', showPlanetOrbits);
+};
+
+document.getElementById('btn-true').onclick = e => {
+  trueScale = !trueScale;
+  e.currentTarget.classList.toggle('on', trueScale);
+  updateInfo();
+};
+
+document.getElementById('chk-moons').onchange = e => {
+  showMoonOrbits = e.target.checked;
+};
+
+document.getElementById('chk-follow').onchange = e => {
+  followId = e.target.checked && selected ? selected.id : null;
+};
+
+document.getElementById('rng-speed').oninput = e => {
+  timeScale = parseFloat(e.target.value);
+  document.getElementById('lbl-speed').textContent =
+    timeScale === 0 ? 'detenido' : `${timeScale} d/s`;
+};
+
+document.getElementById('rng-tilt').oninput = e => {
+  cam.tilt = parseFloat(e.target.value) * DEG;
+  updateTrig();
+  document.getElementById('lbl-tilt').textContent = e.target.value + '°';
+};
+
+/* Presets de cámara */
+function focusOn(id, radiusAU, zoomHint){
+  computePositions(simDays);
+  const b = byId[id];
+  selected = b;
+  if (zoomHint != null){
+    setZoom(zoomHint);
+  } else {
+    setZoom((Math.min(W, H) * 0.4 / radiusAU) / BASE_PX_AU);
+  }
+  cam.x = b.pos.x;
+  cam.y = b.pos.y;
+  updateInfo();
+}
+
+document.getElementById('btn-fit').onclick = () => {
+  setZoom((Math.min(W, H) * 0.45 / 31) / BASE_PX_AU);
+  cam.x = 0; cam.y = 0;
+  followId = null;
+  document.getElementById('chk-follow').checked = false;
+};
+
+document.getElementById('btn-inner').onclick = () => {
+  setZoom((Math.min(W, H) * 0.45 / 1.75) / BASE_PX_AU);
+  cam.x = 0; cam.y = 0;
+  followId = null;
+  document.getElementById('chk-follow').checked = false;
+};
+
+document.getElementById('btn-earth').onclick = () => {
+  /* Encuadra el sistema Tierra–Luna */
+  focusOn('earth', 0.0032);
+  followId = 'earth';
+  document.getElementById('chk-follow').checked = true;
+};
+
+/* --------------------------- 11. ARRANQUE --------------------------- */
+function resize(){
+  const dpr = window.devicePixelRatio || 1;
+  W = canvas.clientWidth;
+  H = canvas.clientHeight;
+  canvas.width  = Math.round(W * dpr);
+  canvas.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  initStars();
+}
+
+window.addEventListener('resize', () => {
+  resize();
+  render();
+});
+
+resize();
+setZoom((Math.min(W, H) * 0.45 / 31) / BASE_PX_AU);
+updateTrig();
+computePositions(0);
+selected = byId['earth'];
+updateInfo();
+last = performance.now();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

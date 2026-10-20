@@ -7,6 +7,7 @@
 [![Sin dependencias](https://img.shields.io/badge/dependencias-ninguna-success)]()
 
 Simulador interactivo del Sistema Solar en un único archivo HTML. Renderiza planetas y lunas con **órbitas keplerianas reales** (elementos J2000), rastros de trayectoria, panel de datos físicos por cuerpo y control total de cámara (zoom, desplazamiento e inclinación). Diseñado para crecer: el motor ya soporta añadir asteroides, cometas o planetas enanos sin tocar el código de renderizado.
+https://jcteacher-lab.github.io/sistemasolar/
 
 Incluye una **guía de ejercicios académica en LaTeX** que usa el simulador como laboratorio virtual para aplicar las leyes de Kepler y la gravitación universal.
 

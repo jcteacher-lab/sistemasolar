@@ -3,9 +3,12 @@
 [![Licencia: GPL v3](https://img.shields.io/badge/Licencia-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![HTML5](https://img.shields.io/badge/HTML5-E34F26?logo=html5&logoColor=white)]()
 [![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black)]()
+[![LaTeX](https://img.shields.io/badge/LaTeX-008080?logo=latex&logoColor=white)]()
 [![Sin dependencias](https://img.shields.io/badge/dependencias-ninguna-success)]()
 
 Simulador interactivo del Sistema Solar en un único archivo HTML. Renderiza planetas y lunas con **órbitas keplerianas reales** (elementos J2000), rastros de trayectoria, panel de datos físicos por cuerpo y control total de cámara (zoom, desplazamiento e inclinación). Diseñado para crecer: el motor ya soporta añadir asteroides, cometas o planetas enanos sin tocar el código de renderizado.
+
+Incluye una **guía de ejercicios académica en LaTeX** que usa el simulador como laboratorio virtual para aplicar las leyes de Kepler y la gravitación universal.
 
 ---
 
@@ -13,10 +16,12 @@ Simulador interactivo del Sistema Solar en un único archivo HTML. Renderiza pla
 
 - [Características](#-características)
 - [Uso rápido](#-uso-rápido)
+- [Estructura del repositorio](#-estructura-del-repositorio)
 - [Controles](#-controles)
 - [Arquitectura del código](#-arquitectura-del-código)
 - [Modelo físico](#-modelo-físico)
 - [Cómo añadir nuevos astros](#-cómo-añadir-nuevos-astros)
+- [Documentación académica](#-documentación-académica)
 - [Roadmap](#-roadmap)
 - [Limitaciones conocidas](#-limitaciones-conocidas)
 - [Contribuir](#-contribuir)
@@ -35,15 +40,16 @@ Simulador interactivo del Sistema Solar en un único archivo HTML. Renderiza pla
 - **Zoom profundo** (×0.1 hasta ×60 000): desde Neptuno completo hasta la órbita de la Luna.
 - **Inclinación de vista** ajustable (0°–80°) para apreciar la tridimensionalidad de las órbitas.
 - **Escala visible**: barra de escala dinámica y aviso de exageración de tamaños cuando se aplica.
-- **Modo escala real** para comparar tamaños verdaderos (a costa de que planetas pequeños desaparezcan).
+- **Modo escala real** para comparar tamaños verdaderos.
 - **Presets de cámara**: sistema completo, interiores, Tierra–Luna.
-- **Sin dependencias**: HTML + CSS + JavaScript puro. Sin frameworks, sin build, sin instalación.
+- **Sin dependencias**: HTML + CSS + JavaScript puro.
+- **Guía de ejercicios en LaTeX** con marco teórico de Kepler y gravitación universal.
 
 ---
 
 ## 🚀 Uso rápido
 
-1. Descarga o copia el contenido del simulador en un archivo llamado `index.html` (o `simulador.html`).
+1. Descarga o copia el contenido del simulador en un archivo llamado `index.html`.
 2. Ábrelo con doble clic en cualquier navegador moderno (Chrome, Firefox, Edge, Safari).
 3. Listo. No requiere servidor web ni conexión a internet.
 
@@ -53,16 +59,35 @@ python3 -m http.server 8000
 # luego abre http://localhost:8000/index.html
 ```
 
-### Estructura del repositorio
+---
+
+## 🗂 Estructura del repositorio
 
 ```
 simulador-sistema-solar/
-├── README.md          ← este archivo
-├── LICENSE            ← texto completo de la GNU GPL v3
-├── index.html         ← el simulador
+├── README.md                          ← este archivo
+├── LICENSE                            ← texto legal GNU GPL v3
+├── index.html                         ← el simulador
+├── Makefile                           ← compila todo (simulador + guía)
+├── .gitignore                         ← exclusiones para Git
 └── docs/
+    ├── guia-ejercicios/
+    │   ├── guia-ejercicios.tex        ← guía académica en LaTeX
+    │   ├── Makefile                   ← compila solo la guía
+    │   ├── bibliografia.bib           ← referencias BibTeX (opcional)
+    │   └── README.md                  ← instrucciones de compilación
     └── capturas/
+        └── .gitkeep                   ← placeholder de capturas
 ```
+
+### Archivos principales
+
+| Archivo | Descripción |
+|---|---|
+| `index.html` | Simulador completo, autocontenido. |
+| `docs/guia-ejercicios/guia-ejercicios.tex` | Guía de ejercicios académica (portada, marco teórico, 6 bloques de ejercicios, apéndices, bibliografía). |
+| `Makefile` | Compila el PDF de la guía y sirve el simulador localmente. |
+| `LICENSE` | Texto legal completo de la GNU GPL v3. |
 
 ---
 
@@ -107,32 +132,16 @@ El archivo se divide en 11 secciones numeradas y comentadas:
 | Sección | Contenido |
 |---|---|
 | 1. Constantes | Factores de conversión (UA, masas, GM, época J2000). |
-| 2. Catálogo | Array `CATALOG` con todos los cuerpos y sus elementos orbitales. |
+| 2. Catálogo | Array `CATALOG` con todos los cuerpos. |
 | 3. Utilidades orbitales | `solveKepler`, `relPos`, `orbitPoints`. |
-| 4. Estado global | Cámara, tiempo, flags de visualización, construcción del catálogo vivo. |
-| 5. Cámara y proyección | Transformación mundo→pantalla con inclinación, zoom y paneo. |
+| 4. Estado global | Cámara, tiempo, flags de visualización. |
+| 5. Cámara y proyección | Transformación mundo→pantalla. |
 | 6. Renderizado | `drawOrbits`, `drawTrails`, `drawBodies`, `drawScaleBar`. |
-| 7. Bucle principal | Integración temporal + gestión de rastros + `requestAnimationFrame`. |
-| 8. Panel de datos | Generación del HTML del panel de información. |
-| 9. Interacción | Eventos de ratón, teclado y *picking* de cuerpos. |
-| 10. Controles | Vinculación de botones, sliders y checkboxes con el estado. |
-| 11. Arranque | `resize`, inicialización de estrellas, primer frame. |
-
-### Flujo por fotograma
-
-```
-loop(now)
- ├─ avanza simDays según timeScale
- ├─ push punto al trail de cada cuerpo
- ├─ computePositions(simDays)      → posiciones jerárquicas
- ├─ render()
- │   ├─ estrellas de fondo
- │   ├─ drawOrbits()               → elipses cacheadas
- │   ├─ drawTrails()               → polilíneas de rastro
- │   ├─ drawBodies()               → discos + etiquetas
- │   └─ drawScaleBar()
- └─ requestAnimationFrame(loop)
-```
+| 7. Bucle principal | Integración temporal + rastros + `requestAnimationFrame`. |
+| 8. Panel de datos | Generación del HTML del panel. |
+| 9. Interacción | Ratón, teclado y *picking*. |
+| 10. Controles | Vinculación de botones y sliders. |
+| 11. Arranque | `resize`, estrellas, primer frame. |
 
 ---
 
@@ -143,7 +152,7 @@ loop(now)
 Para cada cuerpo con elementos `(a, e, i, Ω, ϖ, L, P)` y tiempo `t` en días desde J2000:
 
 1. **Anomalía media**: `M = L + n·t − ϖ` con `n = 2π / P`.
-2. **Anomalía excéntrica** `E`: resuelta iterativamente con Newton-Raphson sobre `E − e·sin E = M`.
+2. **Anomalía excéntrica** `E`: Newton-Raphson sobre `E − e·sin E = M`.
 3. **Posición en el plano orbital**:
    - `x_v = a·(cos E − e)`
    - `y_v = a·√(1−e²)·sin E`
@@ -151,27 +160,19 @@ Para cada cuerpo con elementos `(a, e, i, Ω, ϖ, L, P)` y tiempo `t` en días d
 5. **Rotación por inclinación** `i`.
 6. **Rotación por ascensión del nodo** `Ω`.
 
-El resultado es el vector relativo al cuerpo padre. Para lunas, se suma al vector absoluto del planeta (que a su vez suma al Sol).
+### Datos derivados
 
-### Datos derivados en el panel
-
-- **Velocidad orbital** (vis-viva): `v = √(GM_primario · (2/r − 1/a))`.
-- **Aceleración gravitatoria**: `a_grav = GM_primario / r²`.
-- **Escala de dibujo**: píxeles reales vs. píxeles dibujados, con factor de exageración explícito cuando aplica.
-
-### Escalas
-
-- **Distancias**: `1 px = AU_KM / pxPerAU` (visible en el HUD).
-- **Tamaños**: `radio_km / AU_KM × pxPerAU`, con un mínimo de 2.6 px cuando la escala real los haría invisibles.
+- **Velocidad orbital** (vis-viva): `v = √(GM · (2/r − 1/a))`.
+- **Aceleración gravitatoria**: `g = GM / r²`.
+- **Escala de dibujo**: píxeles reales vs. dibujados, con factor de exageración.
 
 ---
 
 ## ➕ Cómo añadir nuevos astros
 
-El motor está pensado para crecer. Solo hay que añadir entradas al array `CATALOG`:
+Añade entradas al array `CATALOG`:
 
 ```javascript
-// Ejemplo: Ceres, planeta enano del cinturón de asteroides
 {
   id: 'ceres',
   name: 'Ceres',
@@ -181,14 +182,7 @@ El motor está pensado para crecer. Solo hay que añadir entradas al array `CATA
   mass: 9.3835e20,          // kg
   gm: 6.263e10,             // m³/s²
   color: '#9b8f7d',
-  el: {                     // elementos orbitales
-    a: 2.766,               // UA
-    e: 0.0760,
-    i: 10.594,              // °
-    om: 80.393,             // °
-    wbar: 73.597,           // °
-    L: 95.989               // °
-  },
+  el: { a: 2.766, e: 0.0760, i: 10.594, om: 80.393, wbar: 73.597, L: 95.989 },
   P: 1681.63                // días
 }
 ```
@@ -199,21 +193,83 @@ El motor está pensado para crecer. Solo hay que añadir entradas al array `CATA
 |---|---|
 | `id` | Identificador único (string). |
 | `name` | Nombre para mostrar. |
-| `kind` | Categoría (`Planeta`, `Satélite`, `Planeta enano`, `Asteroide`, `Cometa`, `Estrella`…). |
-| `parent` | `id` del cuerpo padre, o `null` si es raíz (como el Sol). |
+| `kind` | Categoría (`Planeta`, `Satélite`, `Planeta enano`, …). |
+| `parent` | `id` del cuerpo padre, o `null` si es raíz. |
 | `radius` | Radio en km. |
 | `mass` | Masa en kg. |
-| `color` | Color CSS del cuerpo y de sus rastros. |
-| `el` | Elementos keplerianos (obligatorio solo si `parent` no es `null`). |
+| `color` | Color CSS del cuerpo. |
+| `el` | Elementos keplerianos (obligatorio si `parent ≠ null`). |
 | `P` | Periodo orbital en días. |
-| `gm` | Parámetro gravitacional estándar en m³/s² (para velocidad y aceleración). |
+| `gm` | Parámetro gravitacional estándar (m³/s²). |
 
-### Consejos para cuerpos nuevos
+> 📘 Consulta el [README de la guía](docs/guia-ejercicios/README.md) para más detalles sobre el catálogo.
 
-- **Cinturón de asteroides**: puedes generar decenas de asteroides con `a` entre 2.2 y 3.2 UA, `e` entre 0.05 y 0.25, `i` entre 0° y 20°, y valores aleatorios de `Ω`, `ϖ`, `L`. El motor los trata igual que a cualquier otro cuerpo.
-- **Cometas**: usa `e` alto (0.7–0.99) e `i` grande (hasta 90°+) para verlos salir del plano.
-- **Cuerpos del cinturón de Kuiper**: `a > 30 UA`. Ajusta el preset "Sistema completo" si quieres verlos en el encuadre inicial.
-- **Cuerpos con `e = 0`, `i = 0`, `Ω = 0`, `ϖ = 0`** producen órbitas circulares perfectas — útiles para lunas simplificadas.
+---
+
+## 📚 Documentación académica
+
+El proyecto incluye una **guía de ejercicios académica en LaTeX** pensada para usar el simulador como laboratorio virtual en cursos de física, astronomía o mecánica celeste.
+
+### Contenido de la guía
+
+| Sección | Descripción |
+|---|---|
+| **Portada institucional** | Con datos del autor, institución, asignatura y fecha. |
+| **Resumen y palabras clave** | Resumen ejecutivo del material didáctico. |
+| **Presentación** | Objetivos de aprendizaje y cómo usar la guía. |
+| **Marco teórico** | Leyes de Kepler (con deducción de la 3.ª ley desde Newton), gravitación universal, cantidades orbitales derivadas (vis-viva, aceleración, escape, densidad). |
+| **Bloque 0** | Familiarización con el simulador. |
+| **Bloque 1** | Tablas de datos de los 8 planetas (radio, masa, a, e, i, T, perihelio, afelio, v). |
+| **Bloque 2** | Tablas de datos de las 16 lunas principales. |
+| **Bloque 3** | Ejercicios de las tres leyes de Kepler, incluida la verificación numérica de T²/a³. |
+| **Bloque 4** | Gravitación universal: fuerza, aceleración, gravedad superficial, velocidad de escape. |
+| **Bloque 5** | Cantidades orbitales: vis-viva, comparación de velocidades, satélites artificiales. |
+| **Bloque 6** | Proyecto final: añadir un astro al catálogo, investigación corta, pregunta abierta. |
+| **Apéndices** | Constantes y fórmulas, datos de referencia para el docente, rúbrica de evaluación. |
+| **Bibliografía** | 8 referencias (Kepler, Newton, NASA JPL, IAU, Vallado, Murray & Dermott). |
+
+### Compilar la guía
+
+#### Requisitos
+
+- **TeX Live** (Linux/macOS) o **MiKTeX** (Windows), con los paquetes `babel-spanish`, `siunitx`, `tcolorbox`, `longtable`, `fancyhdr`, `hyperref`.
+- **Overleaf** (alternativa sin instalación).
+
+#### Compilación local
+
+```bash
+# Desde la raíz del proyecto
+make guia
+
+# O manualmente
+cd docs/guia-ejercicios
+pdflatex guia-ejercicios.tex
+pdflatex guia-ejercicios.tex   # segunda pasada para referencias e índice
+```
+
+El PDF resultante queda en `docs/guia-ejercicios/guia-ejercicios.pdf`.
+
+#### Compilación en Overleaf
+
+1. Crea un proyecto vacío en <https://www.overleaf.com>.
+2. Sube `docs/guia-ejercicios/guia-ejercicios.tex`.
+3. Pulsa **Recompile**.
+
+### Personalizar la guía
+
+Busca el bloque **"DATOS DEL AUTOR"** al inicio de `guia-ejercicios.tex`:
+
+```latex
+\newcommand{\autor}{<<TU NOMBRE COMPLETO>>}
+\newcommand{\institucion}{<<TU INSTITUCIÓN / UNIVERSIDAD>>}
+\newcommand{\facultad}{<<FACULTAD / DEPARTAMENTO>>}
+\newcommand{\asignatura}{<<ASIGNATURA / CURSO>>}
+\newcommand{\profesor}{<<PROFESOR / TUTOR>>}
+\newcommand{\correo}{<<tu.correo@institucion.edu>>}
+\newcommand{\ciudad}{<<CIUDAD, PAÍS>>}
+```
+
+Sustituye cada `<<...>>` por tus datos.
 
 ---
 
@@ -222,50 +278,53 @@ El motor está pensado para crecer. Solo hay que añadir entradas al array `CATA
 - [x] Planetas del Sistema Solar con elementos J2000 reales.
 - [x] Principales lunas de Marte, Júpiter, Saturno, Urano y Neptuno.
 - [x] Rastros, panel de datos, zoom profundo, inclinación de vista.
+- [x] Guía de ejercicios académica en LaTeX (Kepler, gravitación, tablas, rúbrica).
 - [ ] **Cinturón de asteroides** (grupo de cuerpos con órbitas distribuidas).
 - [ ] **Cinturón de Kuiper** y planetas enanos (Ceres, Plutón, Eris, Makemake, Haumea).
 - [ ] **Cometas** con alta excentricidad e inclinación.
-- [ ] **Anillos de Saturno** (y de Urano / Neptuno) como geometría dedicada.
-- [ ] **Texturas** opcionales por planeta (modo alternativo al color plano).
+- [ ] **Anillos de Saturno** como geometría dedicada.
+- [ ] **Texturas** opcionales por planeta.
 - [ ] **Búsqueda** de cuerpos por nombre.
-- [ ] **Persistencia** del estado de cámara y selección en `localStorage`.
+- [ ] **Persistencia** del estado de cámara en `localStorage`.
 - [ ] **Modo efemérides**: introducir una fecha y saltar a ella.
+- [ ] **Versión en inglés** de la guía de ejercicios.
 
 ---
 
 ## ⚠️ Limitaciones conocidas
 
-- **Lunas simplificadas**: los elementos orbitales de los satélites son aproximados (valores promedio). No se modelan perturbaciones, resonancias ni precesión. Para visualización general es suficiente, pero no para astronomía de precisión.
-- **Escala de tamaños exagerada por defecto**: el Sol y los planetas pequeños (Mercurio, Marte) necesitan un mínimo en píxeles para ser visibles a escala de sistema completo. El HUD indica cuándo se aplica exageración. El botón **Escala real** la desactiva.
-- **Escala de distancias comprimible por zoom**: con zoom extremo en la Tierra–Luna, las distancias entre planetas se vuelven inabarcables en pantalla. Es el compromiso habitual de los simuladores 2D/3D.
-- **Cálculo en CPU con Canvas 2D**: apto para decenas de cuerpos; no está optimizado para miles de asteroides simultáneos. Si en el futuro se añade un cinturón completo, conviene migrar el render a WebGL o agrupar cuerpos en *sprites*.
-- **Sin física N-cuerpos**: cada cuerpo sigue su órbita kepleriana alrededor de su padre sin influencia de otros. Es intencional (rendimiento y estabilidad), pero no sirve para estudiar caos orbital.
+- **Lunas simplificadas**: los elementos orbitales de los satélites son aproximados (valores promedio). No se modelan perturbaciones ni precesión.
+- **Escala de tamaños exagerada por defecto**: mínimo de 2.6 px para visibilidad. El HUD indica cuándo se aplica exageración.
+- **Cálculo en CPU con Canvas 2D**: apto para decenas de cuerpos; no optimizado para miles de asteroides simultáneos.
+- **Sin física N-cuerpos**: cada cuerpo sigue su órbita kepleriana alrededor de su padre sin influencia de otros.
 
 ---
 
 ## 🤝 Contribuir
 
-Este proyecto es software libre bajo GPL v3 y **todas las contribuciones son bienvenidas**. Puedes:
+Este proyecto es software libre bajo GPL v3 y **todas las contribuciones son bienvenidas**.
 
-1. Hacer *fork* del repositorio.
-2. Crear una rama para tu cambio: `git checkout -b feature/cinturon-asteroides`
-3. Hacer commit de tus cambios: `git commit -m "Añade cinturón de asteroides"`
-4. Hacer push a la rama: `git push origin feature/cinturon-asteroides`
-5. Abrir un *pull request* describiendo el cambio.
+1. Haz *fork* del repositorio.
+2. Crea una rama: `git checkout -b feature/cinturon-asteroides`.
+3. Haz commit: `git commit -m "feat: añade cinturón de asteroides"`.
+4. Haz push: `git push origin feature/cinturon-asteroides`.
+5. Abre un *pull request*.
 
 ### Buenas prácticas
 
-- Mantén el estilo del código existente (comentarios numerados por sección).
+- Mantén el estilo del código (comentarios numerados por sección).
 - Si añades cuerpos al `CATALOG`, documenta la fuente de los elementos orbitales.
 - Si modificas el motor, actualiza esta documentación (`README.md`).
+- Si modificas la guía, recompila el PDF antes de hacer commit.
 - Al ser GPL v3, tus contribuciones se integrarán bajo la misma licencia.
 
 ### Ideas especialmente buscadas
 
 - Catálogo completo de asteroides del cinturón principal.
 - Modelo de anillos para Saturno.
-- Cálculo opcional de perturbaciones de Júpiter sobre los asteroides.
-- Migración del render a WebGL para miles de cuerpos.
+- Cálculo de perturbaciones de Júpiter sobre los asteroides.
+- Migración del render a WebGL.
+- Traducción de la guía al inglés, francés o portugués.
 
 ---
 
@@ -274,7 +333,7 @@ Este proyecto es software libre bajo GPL v3 y **todas las contribuciones son bie
 - **Elementos orbitales planetarios (J2000)**: NASA JPL, *Approximate Positions of the Planets* — <https://ssd.jpl.nasa.gov/planets/approx_pos.html>
 - **Datos físicos de planetas y lunas**: NASA Planetary Fact Sheet — <https://nssdc.gsfc.nasa.gov/planetary/factsheet/>
 - **Parámetros gravitacionales estándar (GM)**: IAU 2015 Resolution B3.
-- **Ecuación de Kepler y órbitas elípticas**: cualquier texto de mecánica celeste (p. ej. Vallado, *Fundamentals of Astrodynamics*).
+- **Ecuación de Kepler y órbitas elípticas**: Vallado, *Fundamentals of Astrodynamics*.
 
 ---
 
@@ -299,20 +358,11 @@ Deberías haber recibido una copia de la GNU General Public License junto con es
 | **Copyright** | (C) 2024 Los autores del Simulador del Sistema Solar |
 | **Texto legal completo** | [LICENSE](./LICENSE) · [gnu.org/licenses/gpl-3.0](https://www.gnu.org/licenses/gpl-3.0.txt) |
 
-> ⚠️ **Importante**: para que el proyecto esté correctamente licenciado bajo GPL v3, además de este `README.md` debes incluir en la raíz del repositorio un archivo llamado `LICENSE` (sin extensión) con el texto legal completo de la GNU GPL v3. Puedes obtenerlo en:
+> ⚠️ **Importante**: para que el proyecto esté correctamente licenciado bajo GPL v3, además de este `README.md` debes incluir en la raíz del repositorio un archivo llamado `LICENSE` (sin extensión) con el texto legal completo. Puedes obtenerlo con:
 >
-> - <https://www.gnu.org/licenses/gpl-3.0.txt>
-> - <https://choosealicense.com/licenses/gpl-3.0/>
-
-### Qué implica la GPL v3 (resumen no legal)
-
-- ✅ Puedes **usar** el programa para cualquier propósito.
-- ✅ Puedes **estudiar** y **modificar** el código fuente.
-- ✅ Puedes **redistribuir** copias.
-- ✅ Puedes **distribuir versiones modificadas**.
-- ⚠️ Si redistribuyes el programa (original o modificado), **debes hacerlo bajo la misma licencia GPL v3** y **entregar el código fuente**.
-- ⚠️ **No se ofrece ninguna garantía** al usuario.
-- ⚠️ **No se puede relicenciar** a una licencia más restrictiva (copyleft fuerte).
+> ```bash
+> curl -o LICENSE https://www.gnu.org/licenses/gpl-3.0.txt
+> ```
 
 ---
 

@@ -1,0 +1,962 @@
+%======================================================================
+%  GUÍA DE EJERCICIOS · EL SISTEMA SOLAR EN EL SIMULADOR
+%  --------------------------------------------------------------------
+%  Compilar con: pdflatex guia-sistema-solar.tex (dos veces)
+%  Licencia: GNU GPL v3
+%======================================================================
+\documentclass[11pt,a4paper]{article}
+
+%----------------------------------------------------------------------
+%  PAQUETES
+%----------------------------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-tabla,es-noindentfirst]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{siunitx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{tcolorbox}
+\usepackage{setspace}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{lastpage}
+\usepackage{eso-pic}
+\usepackage{mdframed}
+
+\tcbuselibrary{theorems,skins,breakable}
+
+%----------------------------------------------------------------------
+%  COLORES INSTITUCIONALES
+%----------------------------------------------------------------------
+\definecolor{azulU}{HTML}{1B3A6B}
+\definecolor{azulClaro}{HTML}{4A6FA5}
+\definecolor{grisFondo}{HTML}{F4F6F9}
+\definecolor{grisBorde}{HTML}{C9D2DD}
+\definecolor{naranja}{HTML}{E08B2D}
+
+%----------------------------------------------------------------------
+%  HIPERVÍNCULOS
+%----------------------------------------------------------------------
+\hypersetup{
+  colorlinks=false,
+  pdftitle={Estudio del Sistema Solar mediante el Simulador},
+  pdfauthor={MTI. Juan Carlos Santiago Sánchez},
+  pdfsubject={Astronomía · Mecánica Celeste · Física},
+  pdfkeywords={Kepler, gravitación universal, Sistema Solar, simulador}
+}
+
+%----------------------------------------------------------------------
+%  DATOS DEL AUTOR  ←←←  MODIFICA AQUÍ
+%----------------------------------------------------------------------
+\newcommand{\autor}{MTI. Juan Carlos Santiago Sánchez}
+\newcommand{\correo}{juancarlos.santiago.cb161@dgeti.sems.gob.mx}
+\newcommand{\fechaDoc}{19 de octubre de 2026}
+\newcommand{\institucion}{DGETI -- SEMS}
+\newcommand{\facultad}{\strut}
+\newcommand{\asignatura}{Física y Astronomía}
+\newcommand{\profesor}{MTI. Juan Carlos Santiago Sánchez}
+\newcommand{\ciudad}{\strut}
+\pagestyle{plain}
+\titleformat{\section}{\Large\bfseries}{\thesection.}{0.6em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{0.5em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries}{\thesubsubsection}{0.5em}{}
+
+\newenvironment{cajaTeoria}{\begin{quote}\small}{\end{quote}}
+\newenvironment{cajaImportante}{\begin{quote}\small}{\end{quote}}
+\newenvironment{cajaEjercicio}[1][]{\par\medskip\noindent\textbf{#1}\par\smallskip}{\par\medskip}
+
+%----------------------------------------------------------------------
+%  ENTORNOS MATEMÁTICOS
+%----------------------------------------------------------------------
+\theoremstyle{definition}
+\newtheorem{ley}{Ley}
+\newtheorem{definicion}{Definición}
+\newtheorem{ejemplo}{Ejemplo}
+
+%----------------------------------------------------------------------
+%  ESPACIADO
+%----------------------------------------------------------------------
+\setlength{\parskip}{0.35em}
+\setlength{\parindent}{1.2em}
+\setstretch{1.12}
+
+%----------------------------------------------------------------------
+%  COMANDOS ÚTILES
+%----------------------------------------------------------------------
+\newcommand{\UA}{\si{\astronomicalunit}}
+\newcommand{\Msun}{\ensuremath{M_{\odot}}}
+\newcommand{\Mearth}{\ensuremath{M_{\oplus}}}
+\newcommand{\Rearth}{\ensuremath{R_{\oplus}}}
+\newcommand{\GMsun}{\ensuremath{GM_{\odot}}}
+\newcommand{\G}{\ensuremath{G}}
+\newcommand{\vel}{\ensuremath{v}}
+\newcommand{\velesc}{\ensuremath{v_{\text{esc}}}}
+
+%======================================================================
+\begin{document}
+
+\begin{center}
+{\LARGE\bfseries ESTUDIO DEL SISTEMA SOLAR Y SU MODELACIÓN ORBITAL}\\[0.4em]
+{\large Guía didáctica: marco conceptual, ejercicios, aplicaciones y datos de referencia}\\[1.2em]
+\autor\\
+\correo\\[0.7em]
+\fechaDoc
+\end{center}
+
+\tableofcontents
+\newpage
+
+%======================================================================
+\section{Presentación}
+%======================================================================
+
+El \textbf{Simulador del Sistema Solar} (archivo \texttt{index.html}) es una aplicación autocontenida en HTML y JavaScript que permite explorar, en tiempo real y en un navegador, la estructura y dinámica del Sistema Solar. Para cada cuerpo --el Sol, los ocho planetas y dieciséis satélites principales-- el simulador muestra en un panel lateral:
+
+\begin{itemize}[leftmargin=*,itemsep=2pt]
+  \item masa y radio,
+  \item semieje mayor, excentricidad e inclinación,
+  \item período orbital y distancia al primario,
+  \item velocidad orbital instantánea (ecuación vis-viva),
+  \item aceleración gravitatoria.
+\end{itemize}
+
+\subsection*{Propósito general}
+
+Comprender y aplicar las leyes de Kepler y la gravitación newtoniana para interpretar datos orbitales del Sistema Solar mediante un simulador, reconociendo los supuestos del modelo y contrastando los resultados con valores astronómicos de referencia.
+
+\subsection*{Competencias esperadas}
+
+Al completar esta guía, el estudiante será capaz de:
+
+\begin{enumerate}[leftmargin=*,itemsep=2pt]
+  \item \textbf{Registrar y organizar} datos astronómicos reales usando una herramienta digital.
+  \item \textbf{Formular} las tres leyes de Kepler y reconocerlas en la dinámica observada.
+  \item \textbf{Aplicar} la ley de gravitación universal para calcular fuerzas, aceleraciones y velocidades.
+  \item \textbf{Verificar} la tercera ley de Kepler con datos reales y estimar errores.
+  \item \textbf{Predecir} el comportamiento de cuerpos no presentes en el simulador mediante cálculo.
+  \item \textbf{Extender} el catálogo del simulador añadiendo nuevos astros con datos coherentes.
+\end{enumerate}
+
+\subsection*{Cómo usar esta guía}
+
+Cada bloque contiene una \textbf{referencia teórica breve} o remite al marco teórico general (Sección~\ref{sec:marco}). Los ejercicios están pensados para resolverse \textbf{con el simulador abierto en paralelo}. Las tablas vacías se completan leyendo el panel de datos del simulador. Los valores de referencia para el docente aparecen en el Apéndice~\ref{ap:datos}.
+
+\subsection*{Constantes y convenciones}
+
+\begin{table}[h]
+\centering
+\caption{Constantes físicas usadas en la guía.}
+\label{tab:constantes}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Constante} & \textbf{Símbolo} & \textbf{Valor} \\
+\midrule
+Unidad astronómica & \si{\astronomicalunit} & \SI{1.495978707e11}{\metre} \\
+Masa de la Tierra & \Mearth & \SI{5.97237e24}{\kilo\gram} \\
+Radio de la Tierra & \Rearth & \SI{6371}{\kilo\metre} \\
+$\GMsun$ & \GMsun & \SI{1.32712440018e20}{\cubic\metre\per\square\second} \\
+Año juliano & 1 año juliano & \SI{365.25}{\day} = \SI{3.15576e7}{\second} \\
+Día & \SI{1}{\day} & \SI{86400}{\second} \\
+Constante de gravitación & $\G$ & \SI{6.67430e-11}{\newton\square\metre\per\square\kilo\gram} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{cajaImportante}
+\textbf{Nota sobre unidades.} En el simulador, los parámetros gravitacionales \texttt{GM} están en unidades del SI (\si{\cubic\metre\per\square\second}). El panel muestra distancias y semiejes en \si{\astronomicalunit} y en \si{\kilo\metre}; el estudiante deberá convertir al SI cuando lo requiera el cálculo.
+\end{cajaImportante}
+
+%======================================================================
+\section{Marco teórico}\label{sec:marco}
+%======================================================================
+
+\subsection{Leyes de Kepler (1609--1619)}
+
+Johannes Kepler dedujo empíricamente, a partir de las observaciones de Tycho Brahe, tres leyes que describen el movimiento planetario alrededor del Sol.
+
+\begin{ley}[Primera ley: órbitas elípticas]
+En el modelo de dos cuerpos, cada planeta describe una órbita elíptica y el centro de masa del sistema ocupa uno de sus focos. Cuando la masa del planeta es mucho menor que la solar, este foco se aproxima al centro del Sol.
+\end{ley}
+
+Una elipse queda definida por el \textbf{semieje mayor} $a$, el \textbf{semieje menor} $b = a\sqrt{1-e^{2}}$ y la \textbf{excentricidad} $e$. La distancia al Sol varía según la posición en la órbita:
+\[
+  r_p = a(1-e) \quad\text{(perihelio)}, \qquad
+  r_a = a(1+e) \quad\text{(afelio)}.
+\]
+
+\begin{ley}[Segunda ley: ley de las áreas]
+La línea que une al planeta con el Sol barre áreas iguales en tiempos iguales.
+\end{ley}
+
+Consecuencia directa: el planeta se mueve \textbf{más rápido en el perihelio} y \textbf{más lento en el afelio}. En términos modernos, esto equivale a la \textbf{conservación del momento angular} de cada planeta respecto al Sol.
+
+\begin{ley}[Tercera ley: ley armónica]
+El cuadrado del período orbital es proporcional al cubo del semieje mayor:
+\[
+  T^{2} = k\,a^{3}.
+\]
+Para el Sistema Solar, con $T$ en años y $a$ en \si{\astronomicalunit} alrededor del Sol, $k=1$:
+\[
+  T^{2} = a^{3}.
+\]
+\end{ley}
+
+Para una órbita elíptica bajo la gravitación newtoniana, la forma general, considerando también la masa $m$ del cuerpo orbitante, es:
+\[
+  T^{2} = \frac{4\pi^{2}}{GM}\,a^{3}.
+\]
+
+\subsection{Ley de gravitación universal (Newton, 1687)}
+
+\begin{ley}[Gravitación universal]
+Dos cuerpos cualesquiera se atraen con una fuerza proporcional al producto de sus masas e inversamente proporcional al cuadrado de la distancia que los separa:
+\[
+  F = G\,\frac{M\,m}{r^{2}}.
+\]
+\end{ley}
+
+Es habitual agrupar $\mu \equiv GM$ como el \textbf{parámetro gravitacional estándar} del cuerpo central. Para el Sol, $\GMsun = \SI{1.32712440018e20}{\cubic\metre\per\square\second}$.
+
+\subsubsection*{Deducción de la tercera ley de Kepler}
+
+Para una masa $m$ en órbita circular de radio $r$ alrededor de $M\gg m$, la fuerza gravitatoria es la fuerza centrípeta:
+\[
+  \frac{GMm}{r^{2}} = \frac{mv^{2}}{r}
+  \;\Longrightarrow\;
+  v^{2} = \frac{GM}{r}.
+\]
+Sustituyendo $v = 2\pi r/T$:
+\[
+  \left(\frac{2\pi r}{T}\right)^{2} = \frac{GM}{r}
+  \;\Longrightarrow\;
+  T^{2} = \frac{4\pi^{2}}{GM}\,r^{3},
+\]
+que coincide con la ley armónica para $k = 4\pi^{2}/(GM)$.
+
+\subsection{Cantidades orbitales derivadas}
+
+\subsubsection*{Velocidad orbital: ecuación vis-viva}
+
+Para una órbita elíptica de semieje mayor $a$, la velocidad a distancia $r$ del cuerpo central es
+\begin{equation}
+  v = \sqrt{GM\left(\frac{2}{r} - \frac{1}{a}\right)}.
+  \label{eq:visviva}
+\end{equation}
+
+Casos particulares:
+\[
+  v_{\text{circ}} = \sqrt{\frac{GM}{a}}, \qquad
+  v_{p} = \sqrt{\frac{GM(1+e)}{a(1-e)}}, \qquad
+  v_{a} = \sqrt{\frac{GM(1-e)}{a(1+e)}}.
+\]
+
+\subsubsection*{Aceleración gravitatoria}
+
+\[
+  g_{\text{orb}} = \frac{GM}{r^{2}}, \qquad
+  g_{\text{sup}} = \frac{GM}{R^{2}}.
+\]
+
+\subsubsection*{Velocidad de escape}
+
+\[
+  \velesc = \sqrt{\frac{2GM}{R}}.
+\]
+
+\subsubsection*{Velocidad angular media}
+
+\[
+  \omega = \frac{2\pi}{T}.
+\]
+
+\subsection{Relación entre la teoría y el simulador}
+
+\begin{table}[h]
+\centering
+\caption{Correspondencia entre conceptos teóricos y elementos del simulador.}
+\label{tab:correspondencia}
+\begin{tabular}{@{}p{0.45\linewidth}p{0.5\linewidth}@{}}
+\toprule
+\textbf{Concepto teórico} & \textbf{Ubicación en el simulador} \\
+\midrule
+Semieje mayor $a$ & Panel de datos -- \emph{Semieje mayor} \\
+Excentricidad $e$ & Panel de datos -- \emph{Excentricidad} \\
+Inclinación $i$ & Panel de datos -- \emph{Inclinación} \\
+Período $T$ & Panel de datos -- \emph{Periodo orbital} \\
+Distancia al primario $r$ & Panel de datos -- \emph{distancia al cuerpo primario} \\
+Velocidad orbital $v$ & Panel de datos -- \emph{Velocidad orbital} \\
+Aceleración gravitatoria & Panel de datos -- \emph{Aceleración grav.} \\
+Masa $M$ y radio $R$ & Panel de datos -- \emph{Masa}, \emph{Radio} \\
+Parámetro $\mu = GM$ & Código fuente (\texttt{CATALOG}) \\
+Forma elíptica de la órbita & Botón \emph{Órbitas} activado \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{cajaImportante}
+\textbf{Sugerencia didáctica.} Activa los \emph{rastros} y observa cómo la velocidad de un planeta aumenta cerca del perihelio. Es la \textbf{segunda ley de Kepler} en acción.
+\end{cajaImportante}
+
+%======================================================================
+\section{Bloque 0: Familiarización con el simulador}
+%======================================================================
+
+\begin{cajaEjercicio}[Ejercicio 0.1 -- Primer contacto]
+Abre el simulador y responde:
+\begin{enumerate}[label=\alph*),leftmargin=*]
+  \item ¿Cuántos planetas y cuántos satélites puedes ver en total?
+  \item ¿Qué cuerpo tiene la órbita de mayor radio? ¿Y la de menor?
+  \item Activa la \emph{inclinación de vista} a $60^{\circ}$. ¿Qué planetas se ven claramente fuera del plano medio?
+  \item Selecciona el \textbf{Sol}. Anota su radio, masa y \texttt{GM}.
+\end{enumerate}
+\end{cajaEjercicio}
+
+\begin{cajaEjercicio}[Ejercicio 0.2 -- Lectura del panel de datos]
+Selecciona la \textbf{Tierra} y completa la siguiente tabla:
+
+\begin{center}
+\begin{tabular}{@{}lc@{}}
+\toprule
+\textbf{Dato} & \textbf{Valor} \\
+\midrule
+Masa & \hspace{4cm} \\
+Radio & \\
+Semieje mayor $a$ & \\
+Excentricidad $e$ & \\
+Inclinación $i$ & \\
+Período orbital $T$ & \\
+Distancia al Sol $r$ & \\
+Velocidad orbital $v$ & \\
+Aceleración gravitatoria $g$ & \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{cajaEjercicio}
+
+\begin{cajaEjercicio}[Ejercicio 0.3 -- La escala]
+Observa el HUD superior izquierdo:
+\begin{enumerate}[label=\alph*),leftmargin=*]
+  \item ¿Cuántos \si{\kilo\metre} representa un píxel en la vista \emph{Sistema completo}?
+  \item Haz zoom hasta ver la órbita de la Luna. ¿Cuántos \si{\kilo\metre} representa un píxel ahora?
+  \item ¿Por qué el simulador exagera el tamaño de los planetas a escala de sistema completo?
+\end{enumerate}
+\end{cajaEjercicio}
+
+%======================================================================
+\section{Bloque 1: Tablas de datos -- Planetas}
+%======================================================================
+
+\begin{cajaEjercicio}[Ejercicio 1.1 -- Tabla comparativa de los ocho planetas]
+Completa la tabla leyendo el panel de datos del simulador. Para las columnas \emph{Perihelio} y \emph{Afelio}, calcúlalas con $r_p = a(1-e)$ y $r_a = a(1+e)$.
+
+\begin{longtable}{@{}l*{9}{c}@{}}
+\caption{Tabla comparativa de los planetas.} \\
+\toprule
+\textbf{Planeta} & $R$\,(\si{\kilo\metre}) & $M$\,(\si{\kilo\gram}) & $a$\,(\si{\astronomicalunit}) & $e$ & $i$\,($^{\circ}$) & $T$\,(\si{\day}) & $r_p$ & $r_a$ & $v$\,(\si{\kilo\metre\per\second}) \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Planeta} & $R$ & $M$ & $a$ & $e$ & $i$ & $T$ & $r_p$ & $r_a$ & $v$ \\
+\midrule
+\endhead
+Mercurio & & & & & & & & & \\
+Venus    & & & & & & & & & \\
+Tierra   & & & & & & & & & \\
+Marte    & & & & & & & & & \\
+Júpiter  & & & & & & & & & \\
+Saturno  & & & & & & & & & \\
+Urano    & & & & & & & & & \\
+Neptuno  & & & & & & & & & \\
+\bottomrule
+\end{longtable}
+\end{cajaEjercicio}
+
+\textbf{Cuestiones:}
+
+\begin{enumerate}[label=\alph*),leftmargin=*]
+  \item ¿Qué planeta tiene la órbita más excéntrica? ¿Y la menos excéntrica?
+  \item ¿Qué planeta tarda más en completar una órbita? ¿Por qué?
+  \item Ordena los planetas por velocidad orbital de mayor a menor. ¿Qué patrón observas?
+  \item ¿Cuántas veces es más masivo Júpiter que la Tierra? ¿Y cuántas veces cabe la Tierra en el radio de Júpiter?
+\end{enumerate}
+
+\begin{cajaEjercicio}[Ejercicio 1.2 -- Clasificación y densidad]
+A partir de los datos de la tabla anterior:
+\begin{enumerate}[label=\alph*),leftmargin=*]
+  \item Clasifica los planetas en \emph{rocosos} y \emph{gigantes gaseosos}.
+  \item Calcula la densidad media de cada planeta con
+  \[
+    \rho = \frac{M}{\tfrac{4}{3}\pi R^{3}} \quad [\si{\kilo\gram\per\cubic\metre}].
+  \]
+  \item Compara con la densidad del agua ($\SI{1000}{\kilo\gram\per\cubic\metre}$) y con la de la Tierra ($\approx \SI{5500}{\kilo\gram\per\cubic\metre}$).
+\end{enumerate}
+\end{cajaEjercicio}
+
+\begin{cajaEjercicio}[Ejercicio 1.3 -- Mercurio frente a Neptuno]
+Completa la tabla y responde:
+
+\begin{center}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+ & \textbf{Mercurio} & \textbf{Neptuno} \\
+\midrule
+$a$ (\si{\astronomicalunit}) & & \\
+$T$ (años) & & \\
+$v$ orbital media (\si{\kilo\metre\per\second}) & & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{enumerate}[label=\alph*),leftmargin=*]
+  \item ¿Cuántas veces es mayor el semieje de Neptuno que el de Mercurio?
+  \item ¿Cuántas veces es mayor el período de Neptuno que el de Mercurio?
+  \item ¿Se cumple aproximadamente $T^{2}\propto a^{3}$?
+\end{enumerate}
+\end{cajaEjercicio}
+
+%======================================================================
+\section{Bloque 2: Tablas de datos -- Satélites}
+%======================================================================
+
+\begin{cajaEjercicio}[Ejercicio 2.1 -- Lunas principales]
+Completa la tabla leyendo el panel del simulador. Observa que, para las lunas, $a$ se mide \textbf{respecto de su planeta}, no del Sol.
+
+\begin{longtable}{@{}llcccccc@{}}
+\caption{Lunas principales del Sistema Solar.} \\
+\toprule
+\textbf{Satélite} & \textbf{Padre} & $R$\,(\si{\kilo\metre}) & $M$\,(\si{\kilo\gram}) & $a$\,(\si{\kilo\metre}) & $e$ & $i$\,($^{\circ}$) & $T$\,(\si{\day}) \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Satélite} & \textbf{Padre} & $R$ & $M$ & $a$ & $e$ & $i$ & $T$ \\
+\midrule
+\endhead
+Luna      & Tierra   & & & & & & \\
+Fobos     & Marte    & & & & & & \\
+Deimos    & Marte    & & & & & & \\
+Ío        & Júpiter  & & & & & & \\
+Europa    & Júpiter  & & & & & & \\
+Ganímedes & Júpiter  & & & & & & \\
+Calisto   & Júpiter  & & & & & & \\
+Encélado  & Saturno  & & & & & & \\
+Rea       & Saturno  & & & & & & \\
+Titán     & Saturno  & & & & & & \\
+Jápeto    & Saturno  & & & & & & \\
+Ariel     & Urano    & & & & & & \\
+Umbriel   & Urano    & & & & & & \\
+Titania   & Urano    & & & & & & \\
+Oberón    & Urano    & & & & & & \\
+Tritón    & Neptuno  & & & & & & \\
+\bottomrule
+\end{longtable}
+\end{cajaEjercicio}
+
+\textbf{Cuestiones:}
+
+\begin{enumerate}[label=\alph*),leftmargin=*]
+  \item ¿Qué satélite tiene la órbita más inclinada respecto al ecuador de su planeta?
+  \item Ganímedes es el satélite más grande del Sistema Solar. ¿Cómo se compara su radio con el de Mercurio?
+  \item ¿Por qué las lunas de Júpiter completan sus órbitas en pocos días, mientras que las de Urano tardan semanas?
+\end{enumerate}
+
+\begin{cajaEjercicio}[Ejercicio 2.2 -- Satélites y planetas]
+\begin{enumerate}[label=\alph*),leftmargin=*]
+  \item Compara la Luna y Titán con los planetas interiores en tamaño y masa.
+  \item ¿Qué satélite tarda más en orbitar su planeta? ¿Por qué?
+  \item La Luna se aleja de la Tierra a razón de $3.8\,\mathrm{cm\,a^{-1}}$. Si $a_{\text{Luna}} = \SI{384400}{\kilo\metre}$, ¿en cuántos años se duplicaría esa distancia, suponiendo tasa constante? ¿Es un tiempo comparable a la edad del Universo ($\SI{1.38e10}{}$ años)?
+\end{enumerate}
+\end{cajaEjercicio}
+
+%======================================================================
+\section{Bloque 3: Las leyes de Kepler}
+%======================================================================
+
+\begin{cajaEjercicio}[Ejercicio 3.1 -- Primera ley en el simulador]
+Con la vista inclinada a $0^{\circ}$ y zoom amplio sobre un planeta interior:
+\begin{enumerate}[label=\alph*),leftmargin=*]
+  \item Observa la órbita de Mercurio. ¿Se ve claramente elíptica o casi circular? ¿Por qué?
+  \item Repite con Marte. ¿Notas más o menos excentricidad? Justifica con los valores de $e$.
+  \item Selecciona Mercurio y observa su distancia al Sol durante un tiempo. Anota los valores mínimo y máximo.
+\end{enumerate}
+\end{cajaEjercicio}
+
+\begin{cajaEjercicio}[Ejercicio 3.2 -- Segunda ley: velocidad y distancia]
+\begin{enumerate}[label=\alph*),leftmargin=*]
+  \item Selecciona Mercurio y observa cómo cambia su velocidad orbital.
+  \item Anota la velocidad cerca del perihelio y del afelio.
+  \item Calcula la relación $v_{p}/v_{a}$ y compárala con el valor teórico:
+  \[
+    \frac{v_{p}}{v_{a}} = \frac{1+e}{1-e}.
+  \]
+  \item ¿Se cumple la ley de las áreas? Explica por qué esa relación se deduce de la conservación del momento angular.
+\end{enumerate}
+\end{cajaEjercicio}
+
+\begin{cajaEjercicio}[Ejercicio 3.3 -- Tercera ley: la tabla armónica]
+Usando los datos del Ejercicio 1.1, completa:
+
+\begin{longtable}{@{}lccccc@{}}
+\caption{Verificación de la tercera ley de Kepler.} \\
+\toprule
+\textbf{Planeta} & $a$\,(\si{\astronomicalunit}) & $T$\,(años) & $a^{3}$ & $T^{2}$ & $T^{2}/a^{3}$ \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Planeta} & $a$ & $T$ & $a^{3}$ & $T^{2}$ & $T^{2}/a^{3}$ \\
+\midrule
+\endhead
+Mercurio & & & & & \\
+Venus    & & & & & \\
+Tierra   & & & & & \\
+Marte    & & & & & \\
+Júpiter  & & & & & \\
+Saturno  & & & & & \\
+Urano    & & & & & \\
+Neptuno  & & & & & \\
+\bottomrule
+\end{longtable}
+\end{cajaEjercicio}
+
+\textbf{Preguntas:}
+\begin{enumerate}[label=\alph*),leftmargin=*]
+  \item ¿Todos los cocientes $T^{2}/a^{3}$ son iguales? ¿A qué valor se aproximan?
+  \item ¿Qué unidades se usaron para $T$ y $a$? ¿Por qué importa?
+  \item Si $T$ se expresara en días en lugar de años, ¿cuál sería el valor de la constante?
+\end{enumerate}
+
+\begin{cajaEjercicio}[Ejercicio 3.4 -- Extensión: ¿se cumple para las lunas?]
+Para el sistema \textbf{Júpiter--lunas}, aplica la tercera ley con $k = 4\pi^{2}/(GM_{J})$:
+\begin{enumerate}[label=\alph*),leftmargin=*]
+  \item Con $GM_{J} = \SI{1.26686534e17}{\cubic\metre\per\square\second}$ y los datos de las lunas galileanas (Ío, Europa, Ganímedes, Calisto), calcula $T^{2}/a^{3}$ en unidades del SI.
+  \item Compara con $4\pi^{2}/(GM_{J})$. ¿Se cumple?
+  \item ¿Por qué la constante para Júpiter es distinta que para el Sol?
+\end{enumerate}
+\end{cajaEjercicio}
+
+\begin{cajaEjercicio}[Ejercicio 3.5 -- Predicción]
+Supón que descubres un nuevo planeta en el Sistema Solar con $a=\SI{4.0}{\astronomicalunit}$. Sin usar el simulador:
+\begin{enumerate}[label=\alph*),leftmargin=*]
+  \item ¿Cuál sería su período orbital en años?
+  \item ¿Cuál sería su velocidad orbital media aproximada, en \si{\kilo\metre\per\second}?
+  \item Verifica tus resultados comparando con planetas de $a$ similares (Marte: $\SI{1.52}{\astronomicalunit}$; Júpiter: $\SI{5.20}{\astronomicalunit}$).
+\end{enumerate}
+\end{cajaEjercicio}
+
+%======================================================================
+\section{Bloque 4: Gravitación universal}
+%======================================================================
+
+\begin{cajaEjercicio}[Ejercicio 4.1 -- Fuerza gravitatoria]
+Calcula la fuerza que ejerce el Sol sobre cada planeta con
+\[
+  F = G\,\frac{\Msun\, m}{r^{2}}, \qquad
+  \Msun = \SI{1.9885e30}{\kilo\gram}.
+\]
+
+\begin{center}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Planeta} & $m$\,(\si{\kilo\gram}) & $a$\,(\si{\metre}) & $F$\,(\si{\newton}) \\
+\midrule
+Mercurio & & & \\
+Tierra   & & & \\
+Júpiter  & & & \\
+Neptuno  & & & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Preguntas:}
+\begin{enumerate}[label=\alph*),leftmargin=*]
+  \item ¿Sobre qué planeta actúa la fuerza gravitatoria más intensa? ¿Y la más débil?
+  \item ¿Cómo influyen simultáneamente la masa del planeta y su distancia al Sol en la fuerza? Compara el resultado para Neptuno y Mercurio.
+  \item ¿Qué fuerza ejerce cada planeta sobre el Sol? ¿Son iguales o distintas? (\emph{Tercera ley de Newton}).
+\end{enumerate}
+\end{cajaEjercicio}
+
+\begin{cajaEjercicio}[Ejercicio 4.2 -- Aceleración gravitatoria]
+Calcula la aceleración que el Sol produce sobre cada planeta a la distancia media:
+\[
+  g = \frac{\GMsun}{a^{2}}.
+\]
+\begin{center}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+\textbf{Planeta} & $a$\,(\si{\metre}) & $g$\,(\si{\metre\per\square\second}) \\
+\midrule
+Mercurio & & \\
+Tierra   & & \\
+Júpiter  & & \\
+Neptuno  & & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{enumerate}[label=\alph*),leftmargin=*]
+  \item Compara con la \emph{aceleración gravitatoria} que muestra el simulador. ¿Coinciden?
+  \item ¿Por qué la aceleración es mayor para Mercurio que para Neptuno?
+  \item ¿Qué relación hay entre esta aceleración y la velocidad orbital?
+\end{enumerate}
+\end{cajaEjercicio}
+
+\begin{cajaEjercicio}[Ejercicio 4.3 -- Gravedad superficial]
+Calcula la gravedad superficial $g_{\text{sup}} = GM/R^{2}$ de los siguientes cuerpos:
+
+\begin{center}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\textbf{Cuerpo} & $GM$\,(\si{\cubic\metre\per\square\second}) & $R$\,(\si{\metre}) & $g_{\text{sup}}$\,(\si{\metre\per\square\second}) & \textbf{vs.\ Tierra} \\
+\midrule
+Luna    & & & & \\
+Marte   & & & & \\
+Júpiter & & & & \\
+Titán   & & & & \\
+Ío      & & & & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{enumerate}[label=\alph*),leftmargin=*]
+  \item ¿En qué cuerpo un astronauta de \SI{70}{\kilo\gram} pesaría menos? ¿En cuál más?
+  \item ¿Por qué la gravedad superficial de Júpiter (a pesar de su enorme masa) no es proporcionalmente gigantesca?
+\end{enumerate}
+\end{cajaEjercicio}
+
+\begin{cajaEjercicio}[Ejercicio 4.4 -- Velocidad de escape]
+Calcula $\velesc = \sqrt{2GM/R}$ para los siguientes cuerpos:
+
+\begin{center}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Cuerpo} & $GM$\,(\si{\cubic\metre\per\square\second}) & $R$\,(\si{\metre}) & $\velesc$\,(\si{\kilo\metre\per\second}) \\
+\midrule
+Tierra  & $3.986\times10^{14}$ & $6.371\times10^{6}$ & \\
+Luna    & $4.905\times10^{12}$ & $1.737\times10^{6}$ & \\
+Marte   & $4.283\times10^{13}$ & $3.390\times10^{6}$ & \\
+Júpiter & $1.267\times10^{17}$ & $6.991\times10^{7}$ & \\
+Sol     & $1.327\times10^{20}$ & $6.963\times10^{8}$ & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{enumerate}[label=\alph*),leftmargin=*]
+  \item ¿Por qué la Luna no tiene atmósfera significativa?
+  \item ¿Qué implicaría intentar despegar del Sol? ¿Es viable con la tecnología actual?
+\end{enumerate}
+\end{cajaEjercicio}
+
+\begin{cajaEjercicio}[Ejercicio 4.5 -- Peso aparente y órbitas]
+\begin{enumerate}[label=\alph*),leftmargin=*]
+  \item ¿Por qué los astronautas en la Estación Espacial Internacional (a $\sim\SI{400}{\kilo\metre}$ de altura) flotan, si la gravedad terrestre allí es casi la misma que en superficie?
+  \item Calcula $g$ a \SI{400}{\kilo\metre} de altura sobre la Tierra. Compáralo con $g$ en superficie.
+\end{enumerate}
+\end{cajaEjercicio}
+
+%======================================================================
+\section{Bloque 5: Cantidades orbitales y aplicaciones}
+%======================================================================
+
+\begin{cajaEjercicio}[Ejercicio 5.1 -- Perihelio, afelio y velocidad extrema]
+Para Mercurio ($a = \SI{0.387098}{\astronomicalunit}$, $e=0.2056$, $\GMsun = \SI{1.327e20}{\cubic\metre\per\square\second}$):
+\begin{enumerate}[label=\alph*),leftmargin=*]
+  \item Calcula $r_{p}$ y $r_{a}$ en \si{\astronomicalunit} y en \si{\metre}.
+  \item Calcula $v_{p}$ y $v_{a}$ con la ecuación vis-viva \eqref{eq:visviva}.
+  \item Calcula la relación $v_{p}/v_{a}$ y compárala con $(1+e)/(1-e)$.
+  \item Verifica en el simulador seleccionando Mercurio y observando su velocidad.
+\end{enumerate}
+\end{cajaEjercicio}
+
+\begin{cajaEjercicio}[Ejercicio 5.2 -- Comparación de velocidades]
+Calcula la velocidad orbital media (circular) de los ocho planetas:
+\[
+  v_{\text{circ}} = \sqrt{\GMsun/a}.
+\]
+\begin{center}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+\textbf{Planeta} & $a$\,(\si{\metre}) & $v_{\text{circ}}$\,(\si{\kilo\metre\per\second}) \\
+\midrule
+Mercurio & & \\
+Venus    & & \\
+Tierra   & & \\
+Marte    & & \\
+Júpiter  & & \\
+Saturno  & & \\
+Urano    & & \\
+Neptuno  & & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{enumerate}[label=\alph*),leftmargin=*]
+  \item Compara con los valores del simulador. ¿Son cercanos? ¿Por qué no idénticos?
+  \item Grafica $v$ en función de $a$. ¿Qué tipo de curva aparece?
+  \item ¿Qué planeta se mueve más rápido? ¿Y más lento?
+\end{enumerate}
+\end{cajaEjercicio}
+
+\begin{cajaEjercicio}[Ejercicio 5.3 -- Velocidad angular y ``años'']
+\begin{enumerate}[label=\alph*),leftmargin=*]
+  \item Calcula $\omega = 2\pi/T$ de cada planeta en \si{\radian por año}.
+  \item ¿Cuántos ``años locales'' han transcurrido en los últimos \SI{100}{} años terrestres?
+  \item Si vivieras en Marte \SI{1}{} año marciano, ¿cuántos años terrestres habrían pasado?
+\end{enumerate}
+\end{cajaEjercicio}
+
+\begin{cajaEjercicio}[Ejercicio 5.4 -- Un satélite artificial]
+Un satélite orbita la Tierra en una órbita circular a \SI{400}{\kilo\metre} de altura ($\Rearth = \SI{6371}{\kilo\metre}$, $GM_{\oplus} = \SI{3.986e14}{\cubic\metre\per\square\second}$):
+\begin{enumerate}[label=\alph*),leftmargin=*]
+  \item Calcula su velocidad orbital.
+  \item Calcula su período orbital en minutos.
+  \item ¿Cuántas órbitas completa en un día?
+  \item Compara con la Luna (27.3 días). ¿Por qué tanta diferencia?
+\end{enumerate}
+\end{cajaEjercicio}
+
+%======================================================================
+\section{Bloque 6: Síntesis y proyecto final}
+%======================================================================
+
+\begin{cajaEjercicio}[Ejercicio 6.1 -- Diseña tu propio astro]
+Vas a añadir un cuerpo al \texttt{CATALOG} del simulador. Debe ser un \textbf{planeta enano del cinturón de Kuiper} con $a\approx\SI{45}{\astronomicalunit}$, $e\approx 0.15$, $i\approx 20^{\circ}$.
+\begin{enumerate}[label=\alph*),leftmargin=*]
+  \item Estima su período orbital usando $T^{2}=a^{3}$.
+  \item Calcula su velocidad orbital media en el afelio y en el perihelio.
+  \item Propón valores de \texttt{radius}, \texttt{mass} y \texttt{GM} razonables para un cuerpo helado de $\sim\SI{1000}{\kilo\metre}$ de radio (inspírate en Plutón: $R=\SI{1188}{\kilo\metre}$, $M=\SI{1.303e22}{\kilo\gram}$).
+  \item Escribe el objeto completo para añadirlo al \texttt{CATALOG} y verifícalo en el simulador.
+\end{enumerate}
+\end{cajaEjercicio}
+
+\begin{cajaEjercicio}[Ejercicio 6.2 -- Investigación corta]
+Elige un satélite del simulador y elabora un informe (1 página) que incluya: descubrimiento, características físicas, órbita, curiosidades y comparación con la Luna terrestre.
+\end{cajaEjercicio}
+
+\begin{cajaEjercicio}[Ejercicio 6.3 -- Pregunta abierta]
+\emph{``Si el Sol tuviera el doble de masa, ¿cómo cambiarían los períodos orbitales, suponiendo distancias iguales?''}
+
+Argumenta usando la tercera ley generalizada $T^{2} = 4\pi^{2}a^{3}/(GM)$. Calcula el factor de cambio y compruébalo con el simulador modificando temporalmente \texttt{GM\_SUN} en el código.
+\end{cajaEjercicio}
+
+%======================================================================
+\appendix
+\section{Constantes y fórmulas}\label{ap:constantes}
+%======================================================================
+
+\begin{cajaTeoria}
+\textbf{Constantes fundamentales:}
+\begin{align*}
+  \SI{1}{\astronomicalunit} &= \SI{1.495978707e11}{\metre} \\
+  1 año juliano             &= \SI{3.15576e7}{\second} \\
+  \SI{1}{\day}              &= \SI{86400}{\second} \\
+  G                         &= \SI{6.67430e-11}{\newton\square\metre\per\square\kilo\gram} \\
+  \Msun                     &= \SI{1.9885e30}{\kilo\gram} \\
+  \GMsun                    &= \SI{1.32712440018e20}{\cubic\metre\per\square\second} \\
+  \Mearth                   &= \SI{5.97237e24}{\kilo\gram} \\
+  \Rearth                   &= \SI{6.371e6}{\metre}
+\end{align*}
+
+\textbf{Fórmulas clave:}
+\begin{align*}
+  F &= \frac{GMm}{r^{2}} & &\text{(gravitación universal)} \\
+  g &= \frac{GM}{r^{2}} & &\text{(aceleración gravitatoria)} \\
+  v_{\text{circ}} &= \sqrt{\frac{GM}{r}} & &\text{(velocidad circular)} \\
+  v &= \sqrt{GM\left(\frac{2}{r} - \frac{1}{a}\right)} & &\text{(vis-viva)} \\
+  \velesc &= \sqrt{\frac{2GM}{R}} & &\text{(velocidad de escape)} \\
+  T^{2} &= \frac{4\pi^{2}}{GM}\,a^{3} & &\text{(Kepler, generalizada)} \\
+  r_{p} &= a(1-e), \quad r_{a} = a(1+e) & & \\
+  \omega &= \frac{2\pi}{T} & & \\
+  \rho &= \frac{M}{\tfrac{4}{3}\pi R^{3}} & &
+\end{align*}
+\end{cajaTeoria}
+
+%======================================================================
+\section{Datos de referencia para el docente}\label{ap:datos}
+%======================================================================
+
+\begin{cajaImportante}
+Esta sección \textbf{no debe entregarse al estudiante} antes de que complete sus propias mediciones. Se incluye como clave de corrección y para agilizar la revisión de los ejercicios de cálculo.
+\end{cajaImportante}
+
+\subsection*{Planetas}
+
+\begin{longtable}{@{}lccccccc@{}}
+\caption{Datos de referencia de los planetas.} \\
+\toprule
+\textbf{Planeta} & $R$ (\si{\kilo\metre}) & $M$ (\si{\kilo\gram}) & $a$ (\si{\astronomicalunit}) & $e$ & $i$ ($^{\circ}$) & $T$ (\si{\day}) & $v_{\text{circ}}$ (\si{\kilo\metre\per\second}) \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Planeta} & $R$ & $M$ & $a$ & $e$ & $i$ & $T$ & $v_{\text{circ}}$ \\
+\midrule
+\endhead
+Mercurio & 2439.7 & $3.3011\times10^{23}$ & 0.38710 & 0.2056 & 7.006 & 87.97 & 47.9 \\
+Venus    & 6051.8 & $4.8675\times10^{24}$ & 0.72332 & 0.00676 & 3.398 & 224.70 & 35.0 \\
+Tierra   & 6371.0 & $5.9724\times10^{24}$ & 1.00000 & 0.01673 & 0.001 & 365.26 & 29.8 \\
+Marte    & 3389.5 & $6.4171\times10^{23}$ & 1.52371 & 0.09337 & 1.852 & 686.98 & 24.1 \\
+Júpiter  & 69911  & $1.8982\times10^{27}$ & 5.20289 & 0.04839 & 1.304 & 4332.59 & 13.1 \\
+Saturno  & 58232  & $5.6834\times10^{26}$ & 9.53668 & 0.05386 & 2.486 & 10759.2 & 9.6 \\
+Urano    & 25362  & $8.6810\times10^{25}$ & 19.1892 & 0.04726 & 0.773 & 30685.4 & 6.8 \\
+Neptuno  & 24622  & $1.0241\times10^{26}$ & 30.0699 & 0.00859 & 1.770 & 60189.0 & 5.4 \\
+\bottomrule
+\end{longtable}
+
+\subsection*{Satélites principales}
+
+\begin{longtable}{@{}llcccccc@{}}
+\caption{Datos de referencia de los satélites.} \\
+\toprule
+\textbf{Satélite} & \textbf{Padre} & $R$ (\si{\kilo\metre}) & $M$ (\si{\kilo\gram}) & $a$ (\si{\kilo\metre}) & $e$ & $i$ ($^{\circ}$) & $T$ (\si{\day}) \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Satélite} & \textbf{Padre} & $R$ & $M$ & $a$ & $e$ & $i$ & $T$ \\
+\midrule
+\endhead
+Luna      & Tierra  & 1737.4 & $7.342\times10^{22}$ & 384\,400   & 0.0549  & 5.145   & 27.32 \\
+Fobos     & Marte   & 11.27  & $1.0659\times10^{16}$ & 9\,376    & 0.0000  & 1.08    & 0.319 \\
+Deimos    & Marte   & 6.2    & $1.4762\times10^{15}$ & 23\,463   & 0.0000  & 1.79    & 1.26 \\
+Ío        & Júpiter & 1821.6 & $8.932\times10^{22}$ & 421\,700   & 0.0041  & 0.05    & 1.77 \\
+Europa    & Júpiter & 1560.8 & $4.800\times10^{22}$ & 671\,034   & 0.0094  & 0.47    & 3.55 \\
+Ganímedes & Júpiter & 2634.1 & $1.4819\times10^{23}$ & 1\,070\,412 & 0.0013  & 0.20    & 7.15 \\
+Calisto   & Júpiter & 2410.3 & $1.0759\times10^{23}$ & 1\,882\,709 & 0.0074  & 0.19    & 16.69 \\
+Encélado  & Saturno & 252.1  & $1.080\times10^{20}$ & 237\,948   & 0.0047  & 0.02    & 1.37 \\
+Rea       & Saturno & 763.8  & $2.306\times10^{21}$ & 527\,108   & 0.0013  & 0.35    & 4.52 \\
+Titán     & Saturno & 2574.7 & $1.3452\times10^{23}$ & 1\,221\,870 & 0.0288  & 0.35    & 15.95 \\
+Jápeto    & Saturno & 734.5  & $1.805\times10^{21}$ & 3\,560\,820 & 0.0286  & 15.47   & 79.32 \\
+Ariel     & Urano   & 578.9  & $1.251\times10^{21}$ & 190\,900   & 0.0012  & 0.26    & 2.52 \\
+Umbriel   & Urano   & 584.7  & $1.275\times10^{21}$ & 266\,000   & 0.0039  & 0.13    & 4.14 \\
+Titania   & Urano   & 788.4  & $3.400\times10^{21}$ & 436\,300   & 0.0011  & 0.34    & 8.71 \\
+Oberón    & Urano   & 761.4  & $3.076\times10^{21}$ & 583\,500   & 0.0014  & 0.06    & 13.46 \\
+Tritón    & Neptuno & 1353.4 & $2.139\times10^{22}$ & 354\,759   & 0.000016 & 156.89 & 5.88 \\
+\bottomrule
+\end{longtable}
+
+\subsection*{Verificación de la tercera ley de Kepler}
+
+\begin{center}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+\textbf{Planeta} & $a$ (\si{\astronomicalunit}) & $T$ (años) & $a^{3}$ & $T^{2}$ & $T^{2}/a^{3}$ & \textbf{Error} \\
+\midrule
+Mercurio & 0.3871 & 0.2408 & 0.0580 & 0.0580 & 1.000 & $<0.1\%$ \\
+Venus    & 0.7233 & 0.6152 & 0.3783 & 0.3785 & 1.000 & $<0.1\%$ \\
+Tierra   & 1.0000 & 1.0000 & 1.0000 & 1.0000 & 1.000 & $<0.1\%$ \\
+Marte    & 1.5237 & 1.8808 & 3.5378 & 3.5375 & 1.000 & $<0.1\%$ \\
+Júpiter  & 5.2029 & 11.862 & 140.84 & 140.71 & 0.999 & $0.1\%$ \\
+Saturno  & 9.5367 & 29.457 & 867.4  & 867.7  & 1.000 & $<0.1\%$ \\
+Urano    & 19.189 & 84.011 & 7064   & 7058   & 0.999 & $0.1\%$ \\
+Neptuno  & 30.070 & 164.79 & 27192  & 27155  & 0.999 & $0.1\%$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Todos los cocientes son $\approx 1$ con un error menor al $0.5\%$. La tercera ley de Kepler se cumple con los datos del simulador.
+
+%======================================================================
+\section{Rúbrica de evaluación}\label{ap:rubrica}
+%======================================================================
+
+\begin{longtable}{@{}p{0.22\linewidth}*{4}{p{0.17\linewidth}}@{}}
+\caption{Rúbrica de evaluación sugerida.} \\
+\toprule
+\textbf{Criterio} & \textbf{Insuficiente (1)} & \textbf{Suficiente (2)} & \textbf{Bien (3)} & \textbf{Excelente (4)} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Criterio} & \textbf{Insuficiente (1)} & \textbf{Suficiente (2)} & \textbf{Bien (3)} & \textbf{Excelente (4)} \\
+\midrule
+\endhead
+Registro de datos & No completa tablas & Completa con errores & Completa correctamente & Completa y verifica coherencia \\
+Aplicación de leyes de Kepler & No las identifica & Las identifica pero no aplica & Aplica con errores menores & Aplica correctamente y justifica \\
+Cálculos de gravitación & No usa fórmulas & Usa fórmulas con errores & Cálculos correctos con unidades & Cálculos correctos, unidades y análisis \\
+Unidades y notación científica & Confunde unidades & Algunas conversiones correctas & Conversiones correctas & Dominio completo del SI \\
+Análisis y conclusiones & Sin conclusiones & Conclusiones superficiales & Conclusiones correctas & Conclusiones razonadas y conectadas con la teoría \\
+Presentación y orden & Desordenado & Legible & Claro y ordenado & Claro, ordenado y con esquemas \\
+\bottomrule
+\end{longtable}
+
+\noindent\textbf{Puntuación total sugerida:} 24 puntos $\to$ escalar a la calificación que corresponda.
+
+%======================================================================
+\section*{Cierre}
+\addcontentsline{toc}{section}{Cierre}
+%======================================================================
+
+\begin{cajaTeoria}
+\itshape
+``El Sistema Solar no es un lugar, es un proceso.''\\
+\hfill --- Carl Sagan (paráfrasis)
+\end{cajaTeoria}
+
+El simulador es una herramienta para \textbf{hacer preguntas}, no solo para leer respuestas. El catálogo contiene parámetros orbitales referidos a la época J2000 y valores físicos de referencia. Las leyes de Kepler y la gravitación de Newton permiten construir modelos que explican y predicen, dentro de sus supuestos, el movimiento observado. Esta guía te invita a redescubrirlas con tus propias mediciones.
+
+\textbf{Buen viaje orbital.}
+
+%======================================================================
+%  BIBLIOGRAFÍA
+%======================================================================
+\begin{thebibliography}{9}
+
+\bibitem{kepler}
+Kepler, J. (1609). \emph{Astronomia Nova}. Praga.
+
+\bibitem{kepler2}
+Kepler, J. (1619). \emph{Harmonices Mundi}. Linz.
+
+\bibitem{newton}
+Newton, I. (1687). \emph{Philosophiæ Naturalis Principia Mathematica}. Londres.
+
+\bibitem{nasa}
+NASA JPL. \emph{Approximate Positions of the Planets}.\\
+\url{https://ssd.jpl.nasa.gov/planets/approx_pos.html}
+
+\bibitem{factsheet}
+NASA. \emph{Planetary Fact Sheet}.\\
+\url{https://nssdc.gsfc.nasa.gov/planetary/factsheet/}
+
+\bibitem{iau}
+IAU (2015). \emph{Resolution B3 on Recommended Nominal Conversion Constants for Selected Solar and Planetary Properties}. Honolulu.
+
+\bibitem{vallado}
+Vallado, D. A. (2013). \emph{Fundamentals of Astrodynamics and Applications} (4th ed.). Microcosm Press.
+
+\bibitem{murray}
+Murray, C. D., \& Dermott, S. F. (1999). \emph{Solar System Dynamics}. Cambridge University Press.
+
+\end{thebibliography}
+
+%======================================================================
+%  PÁGINA FINAL
+%======================================================================
+\vfill
+\begin{center}
+\rule{0.5\linewidth}{0.5pt}\\[0.3cm]
+{\small\textbf{Guía de Ejercicios · Simulador del Sistema Solar}}\\[0.1cm]
+{\footnotesize \autor\ · \institucion}\\[0.1cm]
+{\footnotesize Distribuido bajo licencia GNU GPL v3}\\[0.1cm]
+{\footnotesize \url{https://www.gnu.org/licenses/gpl-3.0}}
+\end{center}
+
+\end{document}
+
+
+
+
+
+
+
+
+
+

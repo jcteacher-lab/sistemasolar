@@ -15,25 +15,26 @@ Incluye una **guía de ejercicios académica en LaTeX** que usa el simulador com
 
 ## Tabla de contenidos
 
-- [Características](#-características)
-- [Uso rápido](#-uso-rápido)
-- [Estructura del repositorio](#-estructura-del-repositorio)
-- [Controles](#-controles)
-- [Arquitectura del código](#-arquitectura-del-código)
-- [Modelo físico](#-modelo-físico)
-- [Cómo añadir nuevos astros](#-cómo-añadir-nuevos-astros)
-- [Documentación académica](#-documentación-académica)
-- [Roadmap](#-roadmap)
-- [Limitaciones conocidas](#-limitaciones-conocidas)
-- [Contribuir](#-contribuir)
-- [Referencias](#-referencias)
-- [Licencia](#-licencia)
-- [Agradecimientos](#-agradecimientos)
-- [Proyectos relacionados](#-proyectos-relacionados)
+1. [Características](#-características)
+2. [Uso rápido](#-uso-rápido)
+3. [Estructura del repositorio](#-estructura-del-repositorio)
+4. [Controles](#-controles)
+5. [Arquitectura del código](#-arquitectura-del-código)
+6. [Modelo físico](#-modelo-físico)
+7. [Cómo añadir nuevos astros](#-cómo-añadir-nuevos-astros)
+8. [Documentación académica](#-documentación-académica)
+9. [Roadmap](#-roadmap)
+10. [Limitaciones conocidas](#-limitaciones-conocidas)
+11. [Contribuir](#-contribuir)
+12. [Referencias](#-referencias)
+13. [Autor](#-autor)
+14. [Licencia](#-licencia)
+15. [Agradecimientos](#-agradecimientos)
+16. [Proyectos relacionados](#-proyectos-relacionados)
 
 ---
 
-## Características
+## 1. Características
 
 - **Órbitas reales** basadas en elementos keplerianos J2000 (`a`, `e`, `i`, `Ω`, `ϖ`, `L`, `P`) resueltos con la ecuación de Kepler.
 - **Motor jerárquico** Sol → planetas → lunas (posiciones relativas al cuerpo padre).
@@ -49,7 +50,7 @@ Incluye una **guía de ejercicios académica en LaTeX** que usa el simulador com
 
 ---
 
-## Uso rápido
+## 2. Uso rápido
 
 1. Descarga o copia el contenido del simulador en un archivo llamado `index.html`.
 2. Ábrelo con doble clic en cualquier navegador moderno (Chrome, Firefox, Edge, Safari).
@@ -65,7 +66,7 @@ http://localhost:8000
 
 ---
 
-## Estructura del repositorio
+## 3. Estructura del repositorio
 
 ```
 sistemasolar/
@@ -95,7 +96,7 @@ sistemasolar/
 
 ---
 
-## Controles
+## 4. Controles
 
 ### Ratón / trackpad
 
@@ -129,7 +130,7 @@ sistemasolar/
 
 ---
 
-## Arquitectura del código
+## 5. Arquitectura del código
 
 El archivo se divide en 11 secciones numeradas y comentadas:
 
@@ -149,7 +150,7 @@ El archivo se divide en 11 secciones numeradas y comentadas:
 
 ---
 
-## Modelo físico
+## 6. Modelo físico
 
 ### Posición orbital
 
@@ -172,7 +173,7 @@ Para cada cuerpo con elementos `(a, e, i, Ω, ϖ, L, P)` y tiempo `t` en días d
 
 ---
 
-## Cómo añadir nuevos astros
+## 7. Cómo añadir nuevos astros
 
 Añade entradas al array `CATALOG`:
 
@@ -210,7 +211,7 @@ Añade entradas al array `CATALOG`:
 
 ---
 
-## Documentación académica
+## 8. Documentación académica
 
 El proyecto incluye una **guía de ejercicios académica en LaTeX** pensada para usar el simulador como laboratorio virtual en cursos de física, astronomía o mecánica celeste.
 
@@ -277,7 +278,7 @@ Sustituye cada `<<...>>` por tus datos.
 
 ---
 
-## Roadmap
+## 9. Roadmap
 
 - [x] Planetas del Sistema Solar con elementos J2000 reales.
 - [x] Principales lunas de Marte, Júpiter, Saturno, Urano y Neptuno.
@@ -295,7 +296,7 @@ Sustituye cada `<<...>>` por tus datos.
 
 ---
 
-## Limitaciones conocidas
+## 10. Limitaciones conocidas
 
 - **Lunas simplificadas**: los elementos orbitales de los satélites son aproximados (valores promedio). No se modelan perturbaciones ni precesión.
 - **Escala de tamaños exagerada por defecto**: mínimo de 2.6 px para visibilidad. El HUD indica cuándo se aplica exageración.
@@ -304,7 +305,7 @@ Sustituye cada `<<...>>` por tus datos.
 
 ---
 
-## Contribuir
+## 11. Contribuir
 
 Este proyecto es software libre bajo GPL v3 y **todas las contribuciones son bienvenidas**.
 
@@ -332,7 +333,7 @@ Este proyecto es software libre bajo GPL v3 y **todas las contribuciones son bie
 
 ---
 
-## Referencias
+## 12. Referencias
 
 - **Elementos orbitales planetarios (J2000)**: NASA JPL, *Approximate Positions of the Planets* — <https://ssd.jpl.nasa.gov/planets/approx_pos.html>
 - **Datos físicos de planetas y lunas**: NASA Planetary Fact Sheet — <https://nssdc.gsfc.nasa.gov/planetary/factsheet/>
@@ -340,13 +341,13 @@ Este proyecto es software libre bajo GPL v3 y **todas las contribuciones son bie
 - **Ecuación de Kepler y órbitas elípticas**: Vallado, *Fundamentals of Astrodynamics*.
 
 ---
-## Autor
+## 13. Autor
 
 **MTI. Juan Carlos Santiago Sánchez**
 - GitHub: [@jcteacher-lab](https://github.com/jcteacher-lab)
 - Correo: juancarlos.santiago.cb161@dgeti.sems.gob.mx
 
-## Licencia
+## 14. Licencia
 
 **Simulador del Sistema Solar**
 
@@ -375,20 +376,20 @@ Deberías haber recibido una copia de la GNU General Public License junto con es
 
 ---
 
-## Agradecimientos
+## 15. Agradecimientos
 
 Inspirado en la larga tradición de simuladores orbitales abiertos (NASA Eyes on the Solar System, Solar System Scope, Orbit Simulator de PhET) y construido con la idea de que **cualquier persona pueda extenderlo añadiendo una línea al catálogo**.
 
-> *"El Sistema Solar no es un lugar, es un proceso."* — Carl Sagan (paráfrasis)
-
----
-
-**Hecho con ❤️ y con libertad — GPL v3 garantiza que seguirá siendo libre.**
-
-
-## Proyectos relacionados
+## 16. Proyectos relacionados
 
 - [Simulador de Tiro Parabólico](https://jcteacher-lab.github.io/tiroparabolico) —
   Simulador educativo de movimiento de proyectiles con Canvas 2D.
 - [Analizador de parábolas](https://github.com/jcteacher-lab/analizadordeparabolas) —
   Herramienta didáctica para explorar la parábola: cambia a, h y k con deslizadores y observa cómo se traslada el vértice.
+
+  > *"El Sistema Solar no es un lugar, es un proceso."* — Carl Sagan (paráfrasis)
+
+---
+
+**Hecho con ❤️ y con libertad — GPL v3 garantiza que seguirá siendo libre.**
+

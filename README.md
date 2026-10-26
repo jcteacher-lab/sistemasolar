@@ -16,7 +16,7 @@ Incluye una **guía de ejercicios académica en LaTeX** que usa el simulador com
 ## Tabla de contenidos
 
 1. [Características](#1-características)
-2. [Uso rápido](#2-uso-rápido)
+2. [Instalación y ejecución](#2-instalación-y-ejecución)
 3. [Estructura del repositorio](#3-estructura-del-repositorio)
 4. [Controles](#4-controles)
 5. [Arquitectura del código](#5-arquitectura-del-código)
@@ -50,7 +50,7 @@ Incluye una **guía de ejercicios académica en LaTeX** que usa el simulador com
 
 ---
 
-## 2. Uso rápido
+## 2. Instalación y ejecución
 
 1. Descarga o copia el contenido del simulador en un archivo llamado `index.html`.
 2. Ábrelo con doble clic en cualquier navegador moderno (Chrome, Firefox, Edge, Safari).

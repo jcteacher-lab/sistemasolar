@@ -387,8 +387,8 @@ Inspirado en la larga tradición de simuladores orbitales abiertos (NASA Eyes on
   Simulador educativo de movimiento de proyectiles con Canvas 2D.
 - [Analizador de parábolas](https://github.com/jcteacher-lab/analizadordeparabolas) —
   Herramienta didáctica para explorar la parábola: cambia a, h y k con deslizadores y observa cómo se traslada el vértice.
-- [Simulador del sistema solar](https://github.com/jcteacher-lab/sistemasolar/) —
-Simulador interactivo del Sistema Solar en un único archivo HTML. Renderiza planetas y lunas con **órbitas keplerianas reales** (elementos J2000)
+- [Graficador dinámico de parábolas](https://github.com/jcteacher-lab/Graficador_dinamico_parabolas) —
+  Simulador educativo que construye la **gráfica y la ecuación de una parábola** a partir de sus elementos geométricos: **Vértice**, **Foco** y **Directriz**.
 
   > *"El Sistema Solar no es un lugar, es un proceso."* — Carl Sagan (paráfrasis)
 

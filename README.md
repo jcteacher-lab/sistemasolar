@@ -55,9 +55,11 @@ Incluye una **guía de ejercicios académica en LaTeX** que usa el simulador com
 3. Listo. No requiere servidor web ni conexión a internet.
 
 ```bash
-# Opcional: si prefieres servirlo localmente
+git clone https://github.com/jcteacher-lab/sistemasolar.git
+cd sistemasolar
 python3 -m http.server 8000
-# luego abre http://localhost:8000/index.html
+# Luego abre en tu navegador:
+http://localhost:8000
 ```
 
 ---
@@ -65,7 +67,7 @@ python3 -m http.server 8000
 ## Estructura del repositorio
 
 ```
-simulador-sistema-solar/
+sistemasolar/
 ├── README.md                          ← este archivo
 ├── LICENSE                            ← texto legal GNU GPL v3
 ├── index.html                         ← el simulador
@@ -340,6 +342,8 @@ Este proyecto es software libre bajo GPL v3 y **todas las contribuciones son bie
 ## Autor
 
 **MTI. Juan Carlos Santiago Sánchez**
+- GitHub: [@jcteacher-lab](https://github.com/jcteacher-lab)
+- Correo: juancarlos.santiago.cb161@dgeti.sems.gob.mx
 
 ## Licencia
 

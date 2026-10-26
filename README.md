@@ -1,4 +1,4 @@
-# 🌌 Simulador del Sistema Solar
+# Simulador del Sistema Solar
 
 [![Licencia: GPL v3](https://img.shields.io/badge/Licencia-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![HTML5](https://img.shields.io/badge/HTML5-E34F26?logo=html5&logoColor=white)]()
@@ -13,7 +13,7 @@ Incluye una **guía de ejercicios académica en LaTeX** que usa el simulador com
 
 ---
 
-## 📋 Tabla de contenidos
+## Tabla de contenidos
 
 - [Características](#-características)
 - [Uso rápido](#-uso-rápido)
@@ -32,7 +32,7 @@ Incluye una **guía de ejercicios académica en LaTeX** que usa el simulador com
 
 ---
 
-## ✨ Características
+## Características
 
 - **Órbitas reales** basadas en elementos keplerianos J2000 (`a`, `e`, `i`, `Ω`, `ϖ`, `L`, `P`) resueltos con la ecuación de Kepler.
 - **Motor jerárquico** Sol → planetas → lunas (posiciones relativas al cuerpo padre).
@@ -48,7 +48,7 @@ Incluye una **guía de ejercicios académica en LaTeX** que usa el simulador com
 
 ---
 
-## 🚀 Uso rápido
+## Uso rápido
 
 1. Descarga o copia el contenido del simulador en un archivo llamado `index.html`.
 2. Ábrelo con doble clic en cualquier navegador moderno (Chrome, Firefox, Edge, Safari).
@@ -92,7 +92,7 @@ simulador-sistema-solar/
 
 ---
 
-## 🎮 Controles
+## Controles
 
 ### Ratón / trackpad
 
@@ -126,7 +126,7 @@ simulador-sistema-solar/
 
 ---
 
-## 🏗 Arquitectura del código
+## Arquitectura del código
 
 El archivo se divide en 11 secciones numeradas y comentadas:
 
@@ -169,7 +169,7 @@ Para cada cuerpo con elementos `(a, e, i, Ω, ϖ, L, P)` y tiempo `t` en días d
 
 ---
 
-## ➕ Cómo añadir nuevos astros
+## Cómo añadir nuevos astros
 
 Añade entradas al array `CATALOG`:
 
@@ -203,11 +203,11 @@ Añade entradas al array `CATALOG`:
 | `P` | Periodo orbital en días. |
 | `gm` | Parámetro gravitacional estándar (m³/s²). |
 
-> 📘 Consulta el [README de la guía](docs/guia-ejercicios/README.md) para más detalles sobre el catálogo.
+>  Consulta el [README de la guía](docs/guia-ejercicios/README.md) para más detalles sobre el catálogo.
 
 ---
 
-## 📚 Documentación académica
+## Documentación académica
 
 El proyecto incluye una **guía de ejercicios académica en LaTeX** pensada para usar el simulador como laboratorio virtual en cursos de física, astronomía o mecánica celeste.
 
@@ -274,7 +274,7 @@ Sustituye cada `<<...>>` por tus datos.
 
 ---
 
-## 🗺 Roadmap
+## Roadmap
 
 - [x] Planetas del Sistema Solar con elementos J2000 reales.
 - [x] Principales lunas de Marte, Júpiter, Saturno, Urano y Neptuno.
@@ -292,7 +292,7 @@ Sustituye cada `<<...>>` por tus datos.
 
 ---
 
-## ⚠️ Limitaciones conocidas
+## Limitaciones conocidas
 
 - **Lunas simplificadas**: los elementos orbitales de los satélites son aproximados (valores promedio). No se modelan perturbaciones ni precesión.
 - **Escala de tamaños exagerada por defecto**: mínimo de 2.6 px para visibilidad. El HUD indica cuándo se aplica exageración.
@@ -301,7 +301,7 @@ Sustituye cada `<<...>>` por tus datos.
 
 ---
 
-## 🤝 Contribuir
+## Contribuir
 
 Este proyecto es software libre bajo GPL v3 y **todas las contribuciones son bienvenidas**.
 
@@ -329,7 +329,7 @@ Este proyecto es software libre bajo GPL v3 y **todas las contribuciones son bie
 
 ---
 
-## 📚 Referencias
+## Referencias
 
 - **Elementos orbitales planetarios (J2000)**: NASA JPL, *Approximate Positions of the Planets* — <https://ssd.jpl.nasa.gov/planets/approx_pos.html>
 - **Datos físicos de planetas y lunas**: NASA Planetary Fact Sheet — <https://nssdc.gsfc.nasa.gov/planetary/factsheet/>
@@ -337,12 +337,15 @@ Este proyecto es software libre bajo GPL v3 y **todas las contribuciones son bie
 - **Ecuación de Kepler y órbitas elípticas**: Vallado, *Fundamentals of Astrodynamics*.
 
 ---
+## Autor
 
-## 📄 Licencia
+**MTI. Juan Carlos Santiago Sánchez**
+
+## Licencia
 
 **Simulador del Sistema Solar**
 
-Copyright (C) 2024 Los autores del Simulador del Sistema Solar
+Copyright (C) 2026 Los autores del Simulador del Sistema Solar
 
 Este programa es **software libre**: puedes redistribuirlo y/o modificarlo bajo los términos de la **GNU General Public License** tal como la publica la Free Software Foundation, ya sea la **versión 3** de la Licencia, o (a tu elección) cualquier versión posterior.
 
@@ -356,10 +359,10 @@ Deberías haber recibido una copia de la GNU General Public License junto con es
 |---|---|
 | **Licencia** | GNU General Public License v3.0 |
 | **SPDX** | `GPL-3.0-or-later` |
-| **Copyright** | (C) 2024 Los autores del Simulador del Sistema Solar |
+| **Copyright** | (C) 2026 |
 | **Texto legal completo** | [LICENSE](./LICENSE) · [gnu.org/licenses/gpl-3.0](https://www.gnu.org/licenses/gpl-3.0.txt) |
 
-> ⚠️ **Importante**: para que el proyecto esté correctamente licenciado bajo GPL v3, además de este `README.md` debes incluir en la raíz del repositorio un archivo llamado `LICENSE` (sin extensión) con el texto legal completo. Puedes obtenerlo con:
+> **Importante**: para que el proyecto esté correctamente licenciado bajo GPL v3, además de este `README.md` debes incluir en la raíz del repositorio un archivo llamado `LICENSE` (sin extensión) con el texto legal completo. Puedes obtenerlo con:
 >
 > ```bash
 > curl -o LICENSE https://www.gnu.org/licenses/gpl-3.0.txt
@@ -367,7 +370,7 @@ Deberías haber recibido una copia de la GNU General Public License junto con es
 
 ---
 
-## 🙌 Agradecimientos
+## Agradecimientos
 
 Inspirado en la larga tradición de simuladores orbitales abiertos (NASA Eyes on the Solar System, Solar System Scope, Orbit Simulator de PhET) y construido con la idea de que **cualquier persona pueda extenderlo añadiendo una línea al catálogo**.
 

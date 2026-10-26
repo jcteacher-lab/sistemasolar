@@ -29,6 +29,7 @@ Incluye una **guía de ejercicios académica en LaTeX** que usa el simulador com
 - [Referencias](#-referencias)
 - [Licencia](#-licencia)
 - [Agradecimientos](#-agradecimientos)
+- [Proyectos relacionados](#-proyectos-relacionados)
 
 ---
 

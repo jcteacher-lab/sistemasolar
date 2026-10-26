@@ -62,7 +62,7 @@ python3 -m http.server 8000
 
 ---
 
-## 🗂 Estructura del repositorio
+## Estructura del repositorio
 
 ```
 simulador-sistema-solar/
@@ -146,7 +146,7 @@ El archivo se divide en 11 secciones numeradas y comentadas:
 
 ---
 
-## 🔭 Modelo físico
+## Modelo físico
 
 ### Posición orbital
 
@@ -345,7 +345,7 @@ Este proyecto es software libre bajo GPL v3 y **todas las contribuciones son bie
 
 **Simulador del Sistema Solar**
 
-Copyright (C) 2026 Los autores del Simulador del Sistema Solar
+Copyright (C) 2026
 
 Este programa es **software libre**: puedes redistribuirlo y/o modificarlo bajo los términos de la **GNU General Public License** tal como la publica la Free Software Foundation, ya sea la **versión 3** de la Licencia, o (a tu elección) cualquier versión posterior.
 

@@ -383,3 +383,11 @@ Inspirado en la larga tradición de simuladores orbitales abiertos (NASA Eyes on
 ---
 
 **Hecho con ❤️ y con libertad — GPL v3 garantiza que seguirá siendo libre.**
+
+
+## Proyectos relacionados
+
+- [Simulador de Tiro Parabólico](https://jcteacher-lab.github.io/tiroparabolico) —
+  Simulador educativo de movimiento de proyectiles con Canvas 2D.
+-[SAnalizador de parábolas](https://github.com/jcteacher-lab/analizadordeparabolas)
+  Herramienta didáctica para explorar la parábola: cambia a, h y k con deslizadores y observa cómo se traslada el vértice

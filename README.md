@@ -15,22 +15,22 @@ Incluye una **guía de ejercicios académica en LaTeX** que usa el simulador com
 
 ## Tabla de contenidos
 
-1. [Características](#-características)
-2. [Uso rápido](#-uso-rápido)
-3. [Estructura del repositorio](#-estructura-del-repositorio)
-4. [Controles](#-controles)
-5. [Arquitectura del código](#-arquitectura-del-código)
-6. [Modelo físico](#-modelo-físico)
-7. [Cómo añadir nuevos astros](#-cómo-añadir-nuevos-astros)
-8. [Documentación académica](#-documentación-académica)
-9. [Roadmap](#-roadmap)
-10. [Limitaciones conocidas](#-limitaciones-conocidas)
-11. [Contribuir](#-contribuir)
-12. [Referencias](#-referencias)
-13. [Autor](#-autor)
-14. [Licencia](#-licencia)
-15. [Agradecimientos](#-agradecimientos)
-16. [Proyectos relacionados](#-proyectos-relacionados)
+1. [Características](#1-características)
+2. [Uso rápido](#2-uso-rápido)
+3. [Estructura del repositorio](#3-estructura-del-repositorio)
+4. [Controles](#4-controles)
+5. [Arquitectura del código](#5-arquitectura-del-código)
+6. [Modelo físico](#6-modelo-físico)
+7. [Cómo añadir nuevos astros](#7-cómo-añadir-nuevos-astros)
+8. [Documentación académica](#8-documentación-académica)
+9. [Roadmap](#9-roadmap)
+10. [Limitaciones conocidas](#10-limitaciones-conocidas)
+11. [Contribuir](#11-contribuir)
+12. [Referencias](#12-referencias)
+13. [Autor](#13-autor)
+14. [Licencia](#14-licencia)
+15. [Agradecimientos](#15-agradecimientos)
+16. [Proyectos relacionados](#16-proyectos-relacionados)
 
 ---
 
@@ -341,6 +341,7 @@ Este proyecto es software libre bajo GPL v3 y **todas las contribuciones son bie
 - **Ecuación de Kepler y órbitas elípticas**: Vallado, *Fundamentals of Astrodynamics*.
 
 ---
+
 ## 13. Autor
 
 **MTI. Juan Carlos Santiago Sánchez**
